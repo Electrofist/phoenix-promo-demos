@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spoke · A year on two wheels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5f2ec; --surface-1: #fbfaf7; --ink: #121212; --ink-2: #52514e; --ink-3: #8a8883;
+    --grid: #e4e1da; --series-1: #2a78d6; --series-2: #eb6834;
+    --seq-100: #cde2fb; --seq-700: #0d366b;
+    --serif: 'Instrument Serif', Georgia, serif; --sans: 'Geist', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 18px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .progress { position: fixed; inset: 0 0 auto 0; height: 3px; background: var(--ink); transform-origin: 0 50%; transform: scaleX(0); z-index: 50; }
+  .top { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 18px clamp(20px, 4vw, 48px); z-index: 40; font-size: 14px; mix-blend-mode: multiply; }
+  .brand { font-weight: 600; letter-spacing: -.01em; display: flex; gap: 8px; align-items: center; }
+  .brand i { width: 12px; height: 12px; border-radius: 50%; border: 3px solid var(--series-2); }
+  .top nav { display: flex; gap: 22px; color: var(--ink-2); }
+  .top nav a { color: inherit; text-decoration: none; }
+  .top nav a:hover { color: var(--ink); }
+
+  /* hero */
+  .hero { position: relative; height: 100vh; min-height: 640px; overflow: hidden; display: grid; place-items: end start; padding: 0 clamp(20px, 4vw, 48px) clamp(40px, 8vh, 90px); }
+  #streaks { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-copy { position: relative; max-width: 980px; }
+  .hero-copy::before { content: ''; position: absolute; inset: -12% -20% -18% -12%; background: radial-gradient(closest-side, rgba(245,242,236,.92), rgba(245,242,236,.6) 60%, rgba(245,242,236,0)); z-index: -1; }
+  .kicker { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 18px; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(56px, 10vw, 150px); line-height: .9; letter-spacing: -.02em; }
+  .hero h1 em { color: var(--series-2); }
+  .hero-num { margin-top: 28px; display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+  .hero-num b { font-size: clamp(44px, 6vw, 72px); font-weight: 600; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .hero-num span { color: var(--ink-2); max-width: 300px; font-size: 16px; line-height: 1.4; }
+  .scroll-cue { position: absolute; right: clamp(20px, 4vw, 48px); bottom: clamp(40px, 8vh, 90px); font-size: 13px; color: var(--ink-2); display: flex; gap: 10px; align-items: center; }
+  .scroll-cue::after { content: ''; width: 1px; height: 46px; background: var(--ink); animation: cue 1.8s ease-in-out infinite; transform-origin: top; }
+  @keyframes cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+  /* chapters */
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  .chapter-head { padding: 18vh 0 6vh; max-width: 820px; }
+  .chapter-head .num { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .chapter-head h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.015em; margin-top: 14px; }
+  .chapter-head p { color: var(--ink-2); margin-top: 22px; max-width: 600px; font-size: 20px; }
+
+  .figure { background: var(--surface-1); border-radius: 20px; padding: 28px; box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 20px 50px -30px rgba(40,30,10,.25); }
+  .fig-title { font-weight: 600; font-size: 16px; }
+  .fig-sub { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+  .legend { display: flex; gap: 18px; font-size: 13px; color: var(--ink-2); margin-top: 12px; min-height: 20px; transition: opacity .4s; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+  .legend i.sq { width: 10px; height: 10px; border-radius: 3px; }
+  svg text { font-family: var(--sans); }
+  .axis text { fill: var(--ink-3); font-size: 11px; }
+  .axis line { stroke: var(--grid); stroke-width: 1; }
+  .lbl { fill: var(--ink); font-size: 12px; font-weight: 600; }
+  .lbl-2 { fill: var(--ink-2); font-size: 12px; }
+  details.table { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+  details.table summary { cursor: pointer; width: max-content; }
+  details.table table { border-collapse: collapse; margin-top: 10px; font-variant-numeric: tabular-nums; }
+  details.table td, details.table th { padding: 4px 14px 4px 0; text-align: left; border-bottom: 1px solid var(--grid); font-weight: 400; }
+  details.table th { color: var(--ink-3); }
+
+  /* scrollytelling */
+  .scrolly { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); }
+  .steps { padding: 10vh 0 30vh; }
+  .step { min-height: 78vh; display: flex; align-items: center; }
+  .step > div { padding: 26px 0; border-top: 1px solid var(--ink); opacity: .28; transition: opacity .5s; }
+  .step.on > div { opacity: 1; }
+  .step h3 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 1.05; }
+  .step p { color: var(--ink-2); margin-top: 12px; }
+  .sticky { position: sticky; top: 12vh; height: 76vh; display: flex; align-items: center; }
+  .sticky .figure { width: 100%; }
+
+  /* rhythm */
+  .rhythm-note { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 28px; }
+  .rhythm-note div { border-top: 1px solid var(--ink); padding-top: 12px; color: var(--ink-2); font-size: 15px; }
+  .rhythm-note b { display: block; color: var(--ink); font-size: 30px; font-weight: 600; letter-spacing: -.03em; }
+
+  /* heatmap + you */
+  .you { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; }
+  .you-panel { position: sticky; top: 90px; }
+  .you-panel .sentence { font-family: var(--serif); font-size: 34px; line-height: 1.1; }
+  .you-panel .sentence b { font-family: var(--sans); font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .days { display: flex; flex-wrap: wrap; gap: 6px; margin: 22px 0 18px; }
+  .days button { font: 500 14px var(--sans); border: 1px solid var(--grid); background: var(--surface-1); color: var(--ink); padding: 7px 12px; border-radius: 99px; cursor: pointer; transition: .2s; }
+  .days button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .slider label { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; }
+  .slider input { width: 100%; accent-color: var(--series-1); margin-top: 6px; }
+  .riders { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; margin-top: 22px; }
+  .riders i { aspect-ratio: 1; border-radius: 50%; background: var(--grid); transition: background .3s; }
+  .riders i.on { background: var(--series-1); }
+  .riders-key { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+
+  /* tiles */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .tile { background: var(--surface-1); border-radius: 18px; padding: 22px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+  .tile .label { font-size: 14px; color: var(--ink-2); }
+  .tile .value { font-size: 44px; font-weight: 600; letter-spacing: -.035em; line-height: 1; margin-top: 18px; }
+  .tile .note { font-size: 13px; color: var(--ink-3); margin-top: 10px; }
+
+  .outro { padding: 22vh 0 10vh; text-align: center; }
+  .outro h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 8vw, 120px); line-height: .95; letter-spacing: -.02em; }
+  .outro h2 em { color: var(--series-1); }
+  .outro p { color: var(--ink-2); margin: 26px auto 0; max-width: 520px; }
+  footer { border-top: 1px solid var(--grid); padding: 24px clamp(20px, 4vw, 48px) 40px; font-size: 13px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+  .tip { position: fixed; pointer-events: none; z-index: 60; background: var(--ink); color: #fff; font-size: 13px; padding: 8px 11px; border-radius: 10px; line-height: 1.35; opacity: 0; transform: translate(-50%, calc(-100% - 12px)); transition: opacity .15s; white-space: nowrap; }
+  .tip b { font-weight: 600; }
+  .tip .k { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 860px) {
+    .top nav { display: none; }
+    .scrolly { grid-template-columns: 1fr; }
+    .sticky { top: 64px; height: auto; order: -1; z-index: 2; }
+    .sticky .figure { padding: 16px; }
+    .steps { padding-top: 0; }
+    .step { min-height: 70vh; }
+    .step > div { background: rgba(245,242,236,.94); padding: 18px; border-radius: 12px; }
+    .you { grid-template-columns: 1fr; }
+    .you-panel { position: static; }
+    .tiles { grid-template-columns: 1fr 1fr; }
+    .rhythm-note { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { .reveal { transition: none; opacity: 1; transform: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<header class="top">
+  <div class="brand"><i></i>Spoke · Annual Report 2026</div>
+  <nav><a href="#year">The year</a><a href="#rhythm">The rhythm</a><a href="#you">You</a><a href="#numbers">Numbers</a></nav>
+</header>
+
+<section class="hero">
+  <canvas id="streaks" aria-hidden="true"></canvas>
+  <div class="hero-copy">
+    <div class="kicker">Port Avalon bike share · 2026 in review</div>
+    <h1>A year on<br><em>two wheels.</em></h1>
+    <div class="hero-num"><b id="heroCount">0</b><span>rides across 212 stations. Each streak above is one of them, replayed.</span></div>
+  </div>
+  <div class="scroll-cue">Scroll the year</div>
+</section>
+
+<main>
+  <!-- chapter 1: scrollytelling -->
+  <div class="wrap" id="year">
+    <div class="chapter-head reveal">
+      <div class="num">Chapter one</div>
+      <h2>Summer carried us. A storm in November nearly didn't.</h2>
+      <p>Monthly rides rose from 210K in January to a July peak, then fell off a cliff in November. Scroll to step through the year.</p>
+    </div>
+    <div class="scrolly">
+      <div class="steps">
+        <div class="step" data-step="0"><div><h3>Rides follow the sun.</h3><p>Every month from January to July beat the one before it. July hit <strong>512K rides</strong>, about 16,500 a day.</p></div></div>
+        <div class="step" data-step="1"><div><h3>Then, Storm Ilse.</h3><p>Eleven days of flood closures along the harbour cut November to <strong>196K</strong>, less than half of September.</p></div></div>
+        <div class="step" data-step="2"><div><h3>Underneath, the fleet was changing.</h3><p>Split by bike type, e-bikes grow every single month, from 31% of rides in January to 58% in December.</p></div></div>
+        <div class="step" data-step="3"><div><h3>September: the e-bike majority.</h3><p>For the first time, more people chose to ride with a motor than without one. They haven't gone back.</p></div></div>
+      </div>
+      <div class="sticky">
+        <figure class="figure" id="monthFig">
+          <div class="fig-title" id="monthTitle">Rides per month, 2026</div>
+          <div class="fig-sub" id="monthSub">All bike types</div>
+          <div class="legend" id="monthLegend" style="opacity:0"><span><i class="sq" style="background:var(--series-1)"></i>Classic</span><span><i class="sq" style="background:var(--series-2)"></i>E-bike</span></div>
+          <svg id="monthChart" viewBox="0 0 640 400" width="100%" role="img" aria-label="Column chart of monthly rides in 2026"></svg>
+          <details class="table"><summary>View as table</summary><table id="monthTable"></table></details>
+        </figure>
+      </div>
+    </div>
+  </div>
+
+  <!-- chapter 2: rhythm -->
+  <div class="wrap" id="rhythm">
+    <div class="chapter-head reveal">
+      <div class="num">Chapter two</div>
+      <h2 id="rhythmHead">The city breathes in at 8:15.</h2>
+      <p>On weekdays, rides follow two sharp commute peaks. Weekends are one slow, sunny hill. Hover the chart to read any 15 minutes of an average day.</p>
+    </div>
+    <figure class="figure reveal">
+      <div class="fig-title">Average rides starting per 15 minutes</div>
+      <div class="fig-sub">Weekdays vs weekends, all of 2026</div>
+      <div class="legend"><span><i style="background:var(--series-1)"></i>Weekday</span><span><i style="background:var(--series-2)"></i>Weekend</span></div>
+      <svg id="hourChart" viewBox="0 0 1080 380" width="100%" role="img" aria-label="Line chart of rides by time of day, weekday versus weekend"></svg>
+      <details class="table"><summary>View as table</summary><table id="hourTable"></table></details>
+    </figure>
+    <div class="rhythm-note reveal" id="rhythmNote"></div>
+  </div>
+
+  <!-- chapter 3: heatmap + you -->
+  <div class="wrap" id="you">
+    <div class="chapter-head reveal">
+      <div class="num">Chapter three</div>
+      <h2>You were never riding alone.</h2>
+      <p>Pick a day and an hour. We'll tell you roughly how many people were riding through Port Avalon with you.</p>
+    </div>
+    <div class="you">
+      <figure class="figure reveal">
+        <div class="fig-title">Average rides per hour, by day of week</div>
+        <div class="fig-sub">Darker means busier</div>
+        <svg id="heat" viewBox="0 0 760 300" width="100%" role="img" aria-label="Heatmap of rides by weekday and hour"></svg>
+        <div class="legend" style="align-items:center"><span>Fewer</span><svg width="140" height="10" aria-hidden="true"><defs><linearGradient id="seqg"><stop offset="0" stop-color="#cde2fb"/><stop offset=".5" stop-color="#3987e5"/><stop offset="1" stop-color="#0d366b"/></linearGradient></defs><rect width="140" height="10" rx="3" fill="url(#seqg)"/></svg><span>More</span></div>
+      </figure>
+      <aside class="you-panel reveal">
+        <div class="sentence" id="youSentence"></div>
+        <div class="days" id="days" role="group" aria-label="Day of week"></div>
+        <div class="slider"><label for="hour"><span>Hour</span><span id="hourLbl"></span></label><input type="range" id="hour" min="0" max="23" value="8"></div>
+        <div class="riders" id="riders" aria-hidden="true"></div>
+        <div class="riders-key">Each dot is 10 riders.</div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- chapter 4: numbers -->
+  <div class="wrap" id="numbers">
+    <div class="chapter-head reveal">
+      <div class="num">Chapter four</div>
+      <h2>The rest, in four numbers.</h2>
+    </div>
+    <div class="tiles">
+      <div class="tile reveal"><div class="label">Average ride</div><div><div class="value" data-count="14" data-suffix=" min">0</div><div class="note">down from 17 min in 2025</div></div></div>
+      <div class="tile reveal"><div class="label">Longest single ride</div><div><div class="value">7h 42m</div><div class="note">Harbour Steps → Harbour Steps. We have questions.</div></div></div>
+      <div class="tile reveal"><div class="label">Busiest station</div><div><div class="value" style="font-size:34px">Harbour Steps</div><div class="note">391,204 departures</div></div></div>
+      <div class="tile reveal"><div class="label">Car trips replaced (est.)</div><div><div class="value" data-count="1190" data-suffix=" t">0</div><div class="note">CO₂ not emitted</div></div></div>
+    </div>
+  </div>
+
+  <section class="outro wrap reveal">
+    <h2>See you on the<br><em>road in 2027.</em></h2>
+    <p>Thanks for every ride, every 8:15 dash and every slow Sunday loop around the harbour.</p>
+  </section>
+</main>
+
+<footer>
+  <span>Spoke and Port Avalon are fictional. All figures are generated placeholder data.</span>
+  <span>Built in Phoenix Code with Claude</span>
+</footer>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const C1 = css('--series-1'), C2 = css('--series-2');
+const fmtK = n => n >= 1000 ? (n / 1000).toFixed(n % 1000 ? 0 : 0) + 'K' : String(Math.round(n));
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- placeholder data (fictional) ---------- */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const RIDES = [210, 228, 305, 362, 431, 478, 512, 497, 455, 388, 196, 166].map(k => k * 1000);
+const EBIKE = [.31, .33, .36, .38, .41, .44, .47, .49, .52, .54, .56, .58];
+const TOTAL = RIDES.reduce((a, b) => a + b, 0) + 140;
+const g = (x, m, s) => Math.exp(-((x - m) ** 2) / (2 * s * s));
+const K = .73; // scaled so 261 weekdays + 104 weekend days ≈ the annual total
+const weekday = h => K * (22 + 610 * g(h, 8.25, .85) + 480 * g(h, 17.6, 1.25) + 170 * g(h, 12.6, 1.4) + 60 * g(h, 21, 2));
+const weekend = h => K * (14 + 330 * g(h, 14, 3.1) + 70 * g(h, 21.5, 1.4) + 40 * g(h, 10.5, 1.2));
+const QUARTERS = Array.from({ length: 96 }, (_, i) => i / 4);
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAYF = [.96, 1, 1.03, 1.0, .91, 1.0, .86];
+const hourly = (d, h) => 4 * (d < 5 ? weekday(h + .5) : weekend(h + .5)) * DAYF[d]; // rides per hour
+
+/* ---------- tooltip ---------- */
+const tip = document.getElementById('tip');
+function showTip(html, x, y) { tip.innerHTML = html; tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1; }
+function hideTip() { tip.style.opacity = 0; }
+
+/* ---------- hero: ride streaks ---------- */
+(() => {
+  const cv = document.getElementById('streaks'), ctx = cv.getContext('2d');
+  let W, H, dpr, parts = [];
+  function size() {
+    dpr = Math.min(devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    parts = Array.from({ length: Math.round(W * H / 4200) }, spawn);
+  }
+  function spawn() { const x = Math.random() * W, y = Math.random() * H; return { x, y, trail: [x, y], age: 0, life: 120 + Math.random() * 260, c: Math.random() < .55 ? C1 : C2, w: Math.random() < .12 ? 2 : 1.1 }; }
+  let t = 0;
+  function frame() {
+    t += .0016;
+    ctx.clearRect(0, 0, W, H);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const p of parts) {
+      // a gently turning flow field: streets that bend like a harbour town
+      const a = Math.sin(p.x * .0042 + t * 2) * 1.6 + Math.cos(p.y * .0051 - t) * 1.4 + Math.sin((p.x + p.y) * .0017);
+      p.x += Math.cos(a) * 1.7; p.y += Math.sin(a) * 1.7;
+      p.trail.push(p.x, p.y); if (p.trail.length > 60) p.trail.splice(0, 2);
+      // fade in at birth, out at death
+      const fade = Math.min(1, p.age++ / 30, p.life / 30);
+      ctx.strokeStyle = p.c; ctx.globalAlpha = .6 * fade; ctx.lineWidth = p.w;
+      ctx.beginPath(); ctx.moveTo(p.trail[0], p.trail[1]);
+      for (let i = 2; i < p.trail.length; i += 2) ctx.lineTo(p.trail[i], p.trail[i + 1]);
+      ctx.stroke();
+      if (--p.life < 0 || p.x < -40 || p.x > W + 40 || p.y < -40 || p.y > H + 40) Object.assign(p, spawn());
+    }
+    ctx.globalAlpha = 1;
+    // keep the headline readable: a soft paper wash bottom-left
+    if (!reduced) requestAnimationFrame(frame);
+  }
+  size(); addEventListener('resize', size);
+  if (reduced) { for (let i = 0; i < 240; i++) frame(); } else frame();
+
+  const num = document.getElementById('heroCount'), t0 = performance.now(), dur = reduced ? 1 : 2600;
+  (function count(now) { const k = Math.min(1, (now - t0) / dur); num.textContent = fmt(TOTAL * ease(k)); if (k < 1) requestAnimationFrame(count); })(t0);
+})();
+
+/* ---------- chapter 1: monthly columns, driven by scroll steps ---------- */
+const month = (() => {
+  const svg = document.getElementById('monthChart');
+  const M = { l: 48, r: 12, t: 30, b: 30 }, W = 640, H = 400, iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const max = 600000, y = v => M.t + ih - v / max * ih, band = iw / 12, bw = 24;
+  const ax = el('g', { class: 'axis' }, svg);
+  for (const v of [0, 200000, 400000, 600000]) { el('line', { x1: M.l, x2: W - M.r, y1: y(v), y2: y(v) }, ax); el('text', { x: M.l - 10, y: y(v) + 4, 'text-anchor': 'end' }, ax).textContent = v ? fmtK(v) : '0'; }
+  MONTHS.forEach((m, i) => el('text', { x: M.l + band * i + band / 2, y: H - 8, 'text-anchor': 'middle' }, ax).textContent = m);
+
+  const top = (x, y0, y1, w, r) => { const h = y0 - y1; r = Math.max(0, Math.min(r, h, w / 2)); return `M${x},${y0}V${y1 + r}Q${x},${y1} ${x + r},${y1}H${x + w - r}Q${x + w},${y1} ${x + w},${y1 + r}V${y0}Z`; };
+  const bars = RIDES.map((v, i) => {
+    const gEl = el('g', {}, svg), x = M.l + band * i + (band - bw) / 2;
+    const c = el('path', { fill: C1 }, gEl), e = el('path', { fill: C2 }, gEl);
+    const hit = el('rect', { x: M.l + band * i, y: M.t, width: band, height: ih, fill: 'transparent' }, gEl);
+    hit.addEventListener('pointermove', ev => {
+      const split = cur.split > .5;
+      showTip(`<b>${MONTHS[i]} 2026</b><br>${fmt(v)} rides` + (split ? `<br><span class="k" style="background:${C1}"></span>Classic ${fmt(v * (1 - EBIKE[i]))}<br><span class="k" style="background:${C2}"></span>E-bike ${fmt(v * EBIKE[i])} (${Math.round(EBIKE[i] * 100)}%)` : ''), ev.clientX, ev.clientY);
+    });
+    hit.addEventListener('pointerleave', hideTip);
+    return { gEl, c, e, x, v };
+  });
+  const note = el('g', { opacity: 0 }, svg), noteLine = el('line', { stroke: '#121212', 'stroke-width': 1 }, note);
+  const noteT1 = el('text', { class: 'lbl', 'text-anchor': 'middle' }, note), noteT2 = el('text', { class: 'lbl-2', 'text-anchor': 'middle' }, note);
+  const peak = el('text', { class: 'lbl', 'text-anchor': 'middle' }, svg);
+
+  // state: grow 0..1, split 0..1 (stack e-bikes on top), focus month index or -1
+  const STATES = [
+    { grow: 1, split: 0, focus: -1, note: null },
+    { grow: 1, split: 0, focus: 10, note: ['Storm Ilse', '11 days of closures'] },
+    { grow: 1, split: 1, focus: -1, note: null },
+    { grow: 1, split: 1, focus: 8, note: ['52% e-bike', 'first majority month'] },
+  ];
+  let cur = { grow: 0, split: 0, focus: -1 }, from = { ...cur }, target = STATES[0], t0 = 0, anim = 0, step = -1;
+  function render(s) {
+    bars.forEach((b, i) => {
+      const v = b.v * s.grow, eShare = EBIKE[i] * s.split, cv = v * (1 - eShare), y0 = y(0), yc = y(cv);
+      const eH = y(cv) - y(v), gap = Math.min(2, eH);
+      b.c.setAttribute('d', top(b.x, y0, yc, bw, Math.max(0, 4 - eH * 2)));
+      b.e.setAttribute('d', eH > .5 ? top(b.x, yc - gap, y(v), bw, 4) : '');
+      const dim = s.focusMix * (i === s.focusIdx ? 0 : .72);
+      b.gEl.setAttribute('opacity', 1 - dim);
+    });
+    const j = RIDES.indexOf(Math.max(...RIDES));
+    peak.setAttribute('x', bars[j].x + bw / 2); peak.setAttribute('y', y(RIDES[j] * s.grow) - 8); peak.textContent = '512K';
+    peak.setAttribute('opacity', s.grow * (1 - s.focusMix));
+  }
+  function frameState(now) {
+    const k = reduced ? 1 : ease(Math.min(1, (now - t0) / 900));
+    const s = { grow: from.grow + (target.grow - from.grow) * k, split: from.split + (target.split - from.split) * k };
+    // focus fades out then in when switching month
+    const fIn = target.focus >= 0 ? k : 0, fOut = from.focus >= 0 && from.focus !== target.focus ? 1 - k : 0;
+    s.focusMix = Math.max(fIn, fOut); s.focusIdx = fIn >= fOut ? target.focus : from.focus;
+    render(s); cur = { grow: s.grow, split: s.split, focus: k === 1 ? target.focus : cur.focus };
+    if (k < 1) anim = requestAnimationFrame(frameState); else { cur.focus = target.focus; placeNote(); }
+  }
+  function placeNote() {
+    if (!target.note) { note.setAttribute('opacity', 0); return; }
+    const b = bars[target.focus], x = b.x + bw / 2, yt = y(b.v) - 16;
+    const ny = Math.max(M.t + 10, yt - 54);
+    noteLine.setAttribute('x1', x); noteLine.setAttribute('x2', x); noteLine.setAttribute('y1', ny + 26); noteLine.setAttribute('y2', yt);
+    noteT1.setAttribute('x', x); noteT1.setAttribute('y', ny); noteT1.textContent = target.note[0];
+    noteT2.setAttribute('x', x); noteT2.setAttribute('y', ny + 16); noteT2.textContent = target.note[1];
+    note.style.transition = 'opacity .4s'; note.setAttribute('opacity', 1);
+  }
+  function go(i) {
+    if (i === step) return; step = i; target = STATES[i]; from = { ...cur }; t0 = performance.now();
+    note.setAttribute('opacity', 0); cancelAnimationFrame(anim); anim = requestAnimationFrame(frameState);
+    document.getElementById('monthLegend').style.opacity = target.split ? 1 : 0;
+    document.getElementById('monthSub').textContent = target.split ? 'Classic vs e-bike' : 'All bike types';
+  }
+  render({ grow: 0, split: 0, focusMix: 0, focusIdx: -1 });
+  document.getElementById('monthTable').innerHTML = '<tr><th>Month</th><th>Rides</th><th>E-bike share</th></tr>' + RIDES.map((v, i) => `<tr><td>${MONTHS[i]}</td><td>${fmt(v)}</td><td>${Math.round(EBIKE[i] * 100)}%</td></tr>`).join('');
+  return { go };
+})();
+const stepEls = [...document.querySelectorAll('.step')];
+// the active step is the last one whose top has crossed the middle of the screen
+let chartSeen = false;
+function syncStep() {
+  if (!chartSeen) return;
+  let k = 0; stepEls.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * .55) k = i; });
+  stepEls.forEach((s, i) => s.classList.toggle('on', i === k)); month.go(k);
+}
+addEventListener('scroll', syncStep, { passive: true }); addEventListener('resize', syncStep);
+// first grow-in waits until the chart is actually on screen
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); chartSeen = true; syncStep(); } }, { threshold: .3 }).observe(document.getElementById('monthFig'));
+
+/* ---------- chapter 2: the daily rhythm ---------- */
+(() => {
+  const svg = document.getElementById('hourChart');
+  const M = { l: 48, r: 90, t: 20, b: 32 }, W = 1080, H = 380, iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const wd = QUARTERS.map(weekday), we = QUARTERS.map(weekend), max = 600;
+  const x = h => M.l + h / 24 * iw, y = v => M.t + ih - v / max * ih;
+  const ax = el('g', { class: 'axis' }, svg);
+  for (const v of [0, 150, 300, 450, 600]) { el('line', { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v) }, ax); el('text', { x: M.l - 10, y: y(v) + 4, 'text-anchor': 'end' }, ax).textContent = v; }
+  for (let h = 0; h <= 24; h += 3) el('text', { x: x(h), y: H - 8, 'text-anchor': 'middle' }, ax).textContent = h === 24 ? '' : (h % 12 || 12) + (h < 12 ? ' am' : ' pm');
+  const path = d => d.map((v, i) => (i ? 'L' : 'M') + x(QUARTERS[i]).toFixed(1) + ',' + y(v).toFixed(1)).join('');
+  const area = el('path', { d: path(wd) + `L${x(QUARTERS.at(-1))},${y(0)}L${x(0)},${y(0)}Z`, fill: C1, 'fill-opacity': .1 }, svg);
+  const lines = [[wd, C1, 'Weekday'], [we, C2, 'Weekend']].map(([d, c, name]) => {
+    const p = el('path', { d: path(d), fill: 'none', stroke: c, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+    const end = el('circle', { cx: x(QUARTERS.at(-1)), cy: y(d.at(-1)), r: 4, fill: c, stroke: '#fbfaf7', 'stroke-width': 2 }, svg);
+    return { p, end, d, c, name };
+  });
+  // direct end labels (lines end close together, so offset with a clear gap)
+  el('text', { x: x(QUARTERS.at(-1)) + 10, y: y(wd.at(-1)) - 4, class: 'lbl-2' }, svg).textContent = 'Weekday';
+  el('text', { x: x(QUARTERS.at(-1)) + 10, y: y(we.at(-1)) + 14, class: 'lbl-2' }, svg).textContent = 'Weekend';
+  const pk = wd.indexOf(Math.max(...wd)), pkT = QUARTERS[pk], hh = Math.floor(pkT), mm = Math.round((pkT - hh) * 60);
+  const pkLabel = `${hh}:${String(mm).padStart(2, '0')}`;
+  document.getElementById('rhythmHead').textContent = `The city breathes in at ${pkLabel}.`;
+  el('circle', { cx: x(pkT), cy: y(wd[pk]), r: 4, fill: C1, stroke: '#fbfaf7', 'stroke-width': 2 }, svg);
+  el('text', { x: x(pkT) + 10, y: y(wd[pk]) + 4, class: 'lbl' }, svg).textContent = `${pkLabel} am · ${Math.round(wd[pk])} rides`;
+  const wk = we.indexOf(Math.max(...we));
+  el('text', { x: x(QUARTERS[wk]), y: y(we[wk]) - 12, class: 'lbl-2', 'text-anchor': 'middle' }, svg).textContent = 'Weekend peak, 2 pm';
+
+  // draw-on when scrolled into view
+  lines.forEach(l => { const L = l.p.getTotalLength(); l.p.style.strokeDasharray = L; l.p.style.strokeDashoffset = reduced ? 0 : L; });
+  area.style.opacity = 0;
+  new IntersectionObserver((es, io) => es.forEach(e => { if (!e.isIntersecting) return; io.disconnect();
+    lines.forEach((l, i) => { l.p.style.transition = `stroke-dashoffset 2.2s cubic-bezier(.4,0,.2,1) ${i * .25}s`; l.p.style.strokeDashoffset = 0; });
+    area.style.transition = 'opacity 1.2s 1.2s'; area.style.opacity = 1; }), { threshold: .4 }).observe(svg);
+
+  // crosshair
+  const cross = el('line', { y1: M.t, y2: M.t + ih, stroke: '#121212', 'stroke-width': 1, opacity: 0 }, svg);
+  const dots = lines.map(l => el('circle', { r: 5, fill: l.c, stroke: '#fbfaf7', 'stroke-width': 2, opacity: 0 }, svg));
+  const hit = el('rect', { x: M.l, y: M.t, width: iw, height: ih, fill: 'transparent' }, svg);
+  hit.addEventListener('pointermove', ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const i = Math.max(0, Math.min(95, Math.round((p.x - M.l) / iw * 96))), h = QUARTERS[i];
+    cross.setAttribute('x1', x(h)); cross.setAttribute('x2', x(h)); cross.setAttribute('opacity', .35);
+    lines.forEach((l, k) => { dots[k].setAttribute('cx', x(h)); dots[k].setAttribute('cy', y(l.d[i])); dots[k].setAttribute('opacity', 1); });
+    const hh = Math.floor(h), mm = (h - hh) * 60, lab = `${hh % 12 || 12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}`;
+    showTip(`<b>${lab}</b><br>` + lines.map(l => `<span class="k" style="background:${l.c}"></span>${l.name} ${Math.round(l.d[i])}`).join('<br>'), ev.clientX, ev.clientY);
+  });
+  hit.addEventListener('pointerleave', () => { hideTip(); cross.setAttribute('opacity', 0); dots.forEach(d => d.setAttribute('opacity', 0)); });
+
+  document.getElementById('hourTable').innerHTML = '<tr><th>Time</th><th>Weekday</th><th>Weekend</th></tr>' + QUARTERS.filter((_, i) => i % 4 === 0).map(h => `<tr><td>${String(h).padStart(2, '0')}:00</td><td>${Math.round(weekday(h))}</td><td>${Math.round(weekend(h))}</td></tr>`).join('');
+  const dayWd = wd.reduce((a, b) => a + b, 0), dayWe = we.reduce((a, b) => a + b, 0);
+  document.getElementById('rhythmNote').innerHTML =
+    `<div><b>${pkLabel} am</b>busiest 15 minutes of a weekday</div><div><b>${fmt(dayWd)}</b>rides on an average weekday</div><div><b>${fmt(dayWe)}</b>on an average weekend day, spread over the afternoon</div>`;
+})();
+
+/* ---------- chapter 3: heatmap + "you" ---------- */
+(() => {
+  const svg = document.getElementById('heat');
+  const M = { l: 44, r: 6, t: 8, b: 26 }, W = 760, H = 300, cw = (W - M.l - M.r) / 24, ch = (H - M.t - M.b) / 7;
+  const ramp = ['#cde2fb', '#b7d3f6', '#9ec5f4', '#86b6ef', '#6da7ec', '#5598e7', '#3987e5', '#2a78d6', '#256abf', '#1c5cab', '#184f95', '#104281', '#0d366b'];
+  let max = 0; for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) max = Math.max(max, hourly(d, h));
+  const ax = el('g', { class: 'axis' }, svg);
+  DAYS.forEach((d, i) => el('text', { x: M.l - 10, y: M.t + ch * i + ch / 2 + 4, 'text-anchor': 'end' }, ax).textContent = d);
+  for (let h = 0; h < 24; h += 3) el('text', { x: M.l + cw * h + cw / 2, y: H - 6, 'text-anchor': 'middle' }, ax).textContent = (h % 12 || 12) + (h < 12 ? 'a' : 'p');
+  const cells = [];
+  for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) {
+    const v = hourly(d, h), c = ramp[Math.min(ramp.length - 1, Math.floor(Math.sqrt(v / max) * ramp.length))];
+    const r = el('rect', { x: M.l + cw * h + 1, y: M.t + ch * d + 1, width: cw - 2, height: ch - 2, rx: 3, fill: c }, svg);
+    r.style.cursor = 'pointer';
+    r.addEventListener('pointermove', ev => showTip(`<b>${DAYS[d]} · ${(h % 12 || 12)}${h < 12 ? ' am' : ' pm'}</b><br>${fmt(v)} rides / hour`, ev.clientX, ev.clientY));
+    r.addEventListener('pointerleave', hideTip);
+    r.addEventListener('click', () => set(d, h));
+    cells.push(r);
+  }
+  const ring = el('rect', { width: cw + 4, height: ch + 4, rx: 5, fill: 'none', stroke: '#121212', 'stroke-width': 2 }, svg);
+  ring.style.transition = 'x .35s cubic-bezier(.2,.7,.2,1), y .35s cubic-bezier(.2,.7,.2,1)';
+
+  const daysEl = document.getElementById('days'), hourIn = document.getElementById('hour');
+  const btns = DAYS.map((d, i) => { const b = document.createElement('button'); b.textContent = d; b.setAttribute('aria-pressed', 'false'); b.onclick = () => set(i, +hourIn.value); daysEl.appendChild(b); return b; });
+  const riders = document.getElementById('riders'), dots = Array.from({ length: 60 }, () => riders.appendChild(document.createElement('i')));
+  let day = 1, shown = 0;
+  function set(d, h) {
+    day = d; hourIn.value = h;
+    btns.forEach((b, i) => b.setAttribute('aria-pressed', i === d));
+    ring.setAttribute('x', M.l + cw * h - 1); ring.setAttribute('y', M.t + ch * d - 1);
+    const label = `${(h % 12 || 12)} ${h < 12 ? 'am' : 'pm'}`, n = Math.round(hourly(d, h) / 10) * 10;
+    document.getElementById('hourLbl').textContent = label;
+    // ~ riders on the road right now: rides per hour × average 14 min ride / 60
+    const onRoad = Math.max(10, Math.round(n * 14 / 60 / 10) * 10);
+    const from = shown, t0 = performance.now(), sent = document.getElementById('youSentence');
+    (function tick(now) { const k = reduced ? 1 : Math.min(1, (now - t0) / 500); const v = from + (onRoad - from) * ease(k); shown = v;
+      sent.innerHTML = `On a ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][d]} at ${label}, about <b>${fmt(v)}</b> people are riding with you.`;
+      if (k < 1) requestAnimationFrame(tick); })(t0);
+    const lit = Math.min(60, Math.round(onRoad / 10));
+    dots.forEach((e, i) => e.classList.toggle('on', i < lit));
+  }
+  hourIn.addEventListener('input', () => set(day, +hourIn.value));
+  set(1, 8);
+})();
+
+/* ---------- reveals, counters, progress ---------- */
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target);
+  e.target.querySelectorAll('[data-count]').forEach(n => { const to = +n.dataset.count, t0 = performance.now();
+    (function f(now) { const k = reduced ? 1 : Math.min(1, (now - t0) / 1400); n.textContent = fmt(to * ease(k)) + n.dataset.suffix; if (k < 1) requestAnimationFrame(f); })(t0); });
+}), { threshold: .2 });
+document.querySelectorAll('.reveal').forEach(e => io.observe(e));
+const bar = document.getElementById('progress');
+addEventListener('scroll', () => { const k = scrollY / (document.documentElement.scrollHeight - innerHeight); bar.style.transform = `scaleX(${k})`; }, { passive: true });
+
+window.story = { month };
+</script>
+</body>
+</html>
