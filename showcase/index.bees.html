@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hive Nine · a small apiary</title>
+<meta name="description" content="Nine hives on a clover hill.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4efe4; --fg: #2a2420; --mute: rgba(42,36,32,.55); --amber: #c97a10; --line: rgba(42,36,32,.14);
+    --card: rgba(244,239,228,.82);
+    --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  [data-theme="dusk"] { --bg: #1c1916; --fg: #ece4d6; --mute: rgba(236,228,214,.55); --amber: #f0a53a; --line: rgba(236,228,214,.14); --card: rgba(28,25,22,.82); }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--mono); font-size: 14px; line-height: 1.65; letter-spacing: .01em; -webkit-font-smoothing: antialiased; transition: background .5s, color .5s; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--amber); }
+  ::selection { background: var(--amber); color: var(--bg); }
+
+  #field { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; cursor: crosshair; }
+  .wrap { position: relative; z-index: 1; min-height: 100dvh; padding: 72px 24px 40px; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; pointer-events: none; }
+  @media (min-width: 1024px) { .wrap { padding: 15vh 20vw 8vh; max-width: none; } }
+  .wrap [data-bee-avoid] { pointer-events: auto; width: max-content; max-width: 100%; }
+
+  .counter { position: fixed; z-index: 2; top: 22px; right: 24px; text-align: right; font-size: 11px; line-height: 1.7; font-variant-numeric: tabular-nums; }
+  @media (min-width: 1024px) { .counter { right: 20vw; top: 32px; } }
+  .counter div { opacity: .4; }
+  .counter b { font-weight: 400; color: var(--amber); opacity: 1; }
+  .theme { position: fixed; z-index: 2; top: 18px; left: 24px; font: inherit; font-size: 11px; background: none; border: 0; color: var(--fg); opacity: .5; cursor: pointer; padding: 4px 0; }
+  .theme:hover { opacity: 1; }
+  @media (min-width: 1024px) { .theme { left: 20vw; top: 28px; } }
+
+  .hello { font-size: 15px; }
+  .hello .caret { display: inline-block; width: .55em; height: 1em; background: var(--fg); transform: translateY(.15em); margin-left: 2px; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .poem { font-size: clamp(18px, 2.2vw, 26px); line-height: 1.35; margin-top: 18px; }
+  .poem em { font-style: normal; color: var(--amber); }
+  .prose { max-width: 54ch; color: var(--fg); }
+  .prose p + p { margin-top: 12px; }
+  .prose .mute { color: var(--mute); }
+
+  .jars { border-top: 1px solid var(--line); min-width: min(560px, 100%); }
+  .jar { display: grid; grid-template-columns: 1fr auto auto; gap: 18px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .jar small { color: var(--mute); font-size: 12px; display: block; }
+  .jar .p { font-variant-numeric: tabular-nums; }
+  .jar button { font: inherit; font-size: 12px; background: none; border: 1px solid var(--line); color: var(--fg); padding: 3px 10px; border-radius: 99px; cursor: pointer; transition: border-color .2s, background .2s, color .2s; }
+  .jar button:hover { border-color: var(--amber); }
+  .jar button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .jar button[disabled] { opacity: .35; cursor: not-allowed; }
+  .head { font-size: 11px; color: var(--mute); margin-bottom: 6px; text-transform: lowercase; }
+
+  .foot { font-size: 11px; color: var(--mute); display: flex; gap: 18px; flex-wrap: wrap; }
+  .hint { font-size: 11px; color: var(--mute); }
+
+  @media (prefers-reduced-motion: reduce) { .hello .caret { animation: none; } }
+</style>
+</head>
+<body>
+<canvas id="field" aria-hidden="true"></canvas>
+<button class="theme" id="theme" data-bee-ignore>[ dusk ]</button>
+<div class="counter" aria-live="polite">
+  <div>bees <b id="cBees">0</b></div>
+  <div>flowers <b id="cFlowers">0</b></div>
+  <div>honey <b id="cHoney">0</b> g</div>
+</div>
+
+<main class="wrap">
+  <section data-bee-avoid>
+    <p class="hello">Hej, we're Hive Nine.<span class="caret" aria-hidden="true"></span></p>
+    <p class="poem">on a hill of clover,<br>forty thousand <em>small workers</em>.</p>
+  </section>
+
+  <section class="prose" data-bee-avoid>
+    <p>Two people and nine hives on the edge of a town. We sell what the bees make in a good year, and nothing in a bad one.</p>
+    <p class="mute">Raw, unheated, never blended. Each jar is one hive, one season, one hill.</p>
+  </section>
+
+  <section data-bee-avoid>
+    <div class="head">this season</div>
+    <div class="jars" id="jars"></div>
+  </section>
+
+  <section class="foot" data-bee-avoid>
+    <span class="hint">click anywhere to plant a flower.</span>
+    <a href="#" data-bee-ignore>visit the hill</a>
+    <a href="#" data-bee-ignore>adopt a hive</a>
+    <a href="mailto:hello@hivenine.example" data-bee-ignore>hello@hivenine.example</a>
+  </section>
+
+  <p class="foot" data-bee-avoid><span>Hive Nine is fictional. Prices and jars are placeholder. ASCII creature layer inspired by daoho.dev's koi pond.</span></p>
+</main>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const TAU = Math.PI * 2;
+
+  /* ---------- jars (placeholder) ---------- */
+  const JARS = [
+    { t: 'Clover', s: 'spring 2026 · hive 3', w: '250 g', p: '€12', left: 14 },
+    { t: 'Linden', s: 'early summer · hive 7', w: '250 g', p: '€14', left: 6 },
+    { t: 'Wildflower', s: 'high summer · hive 1', w: '400 g', p: '€19', left: 21 },
+    { t: 'Heather', s: 'late season · hive 9', w: '250 g', p: '€18', left: 0 },
+  ];
+  const jarsEl = document.getElementById('jars');
+  JARS.forEach((j, i) => {
+    const row = document.createElement('div'); row.className = 'jar';
+    row.innerHTML = `<div>${j.t}<small>${j.s} · ${j.w}</small></div><span class="p">${j.p}</span>`;
+    const b = document.createElement('button'); b.dataset.beeIgnore = '';
+    if (!j.left) { b.textContent = 'sold out'; b.disabled = true; }
+    else { b.textContent = 'reserve'; b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); b.textContent = on ? 'reserved' : 'reserve'; }; }
+    row.appendChild(b); jarsEl.appendChild(row);
+  });
+
+  /* ---------- theme ---------- */
+  const themeBtn = document.getElementById('theme');
+  const PAL = {
+    day:  { bg: '#f4efe4', ink: [42, 36, 32], amber: [201, 122, 16], wing: [150, 140, 128], dot: [42, 36, 32], stem: [92, 128, 60], petals: [[214, 92, 122], [150, 112, 200], [250, 250, 245], [236, 170, 40]], hive: [168, 116, 52] },
+    dusk: { bg: '#1c1916', ink: [236, 228, 214], amber: [240, 165, 58], wing: [140, 132, 122], dot: [236, 228, 214], stem: [120, 160, 90], petals: [[232, 120, 150], [176, 146, 226], [236, 230, 220], [246, 190, 70]], hive: [214, 150, 70] },
+  };
+  let theme = 'day', pal = PAL.day;
+  themeBtn.onclick = () => { theme = theme === 'day' ? 'dusk' : 'day'; pal = PAL[theme]; document.documentElement.dataset.theme = theme === 'dusk' ? 'dusk' : ''; themeBtn.textContent = theme === 'day' ? '[ dusk ]' : '[ day ]'; };
+
+  /* ---------- grid ---------- */
+  const cv = document.getElementById('field'), g = cv.getContext('2d');
+  let W = 0, H = 0, CW = 11, CH = 16, cols = 0, rows = 0, dpr = 1;
+  let trail, glyph, colr, alpha;  // per-cell buffers
+  const resize = () => {
+    dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    CW = W < 700 ? 9 : 11; CH = Math.round(CW * 1.45);
+    cols = Math.ceil(W / CW); rows = Math.ceil(H / CH);
+    trail = new Float32Array(cols * rows); glyph = new Array(cols * rows); colr = new Array(cols * rows); alpha = new Float32Array(cols * rows);
+    hive.x = W < 700 ? W - 70 : W * .86; hive.y = H - (W < 700 ? 90 : 120);
+    avoidDirty = true;
+  };
+
+  /* ---------- avoid zones: every [data-bee-avoid] block ---------- */
+  let avoid = [], avoidDirty = true, avoidT = 0;
+  const readAvoid = () => { avoid = [...document.querySelectorAll('[data-bee-avoid]')].map(el => { const r = el.getBoundingClientRect(); return { l: r.left - 18, t: r.top - 14, r: r.right + 18, b: r.bottom + 14 }; }).filter(r => r.b > 0 && r.t < H); avoidDirty = false; };
+  addEventListener('scroll', () => avoidDirty = true, { passive: true });
+  const inAvoid = (x, y) => avoid.some(a => x > a.l && x < a.r && y > a.t && y < a.b);
+
+  /* ---------- world ---------- */
+  const hive = { x: 0, y: 0, honey: 0 };
+  const flowers = [];   // {x,y,nectar,max,petal,born,wilt}
+  const bees = [];
+  const pointer = { x: -999, y: -999, vx: 0, vy: 0, speed: 0 };
+  let honeyGrams = 0;
+
+  const spawnBees = () => {
+    const n = clamp(Math.round(W * H / 42000), 12, 34);
+    while (bees.length < n) bees.push({
+      x: hive.x + rand(-30, 30), y: hive.y + rand(-30, 10), vx: rand(-40, 40), vy: rand(-60, -20),
+      heading: rand(0, TAU), wander: 0, speed: rand(70, 110), wing: rand(0, TAU),
+      state: 'wander', target: null, t: 0, pollen: 0, startle: 0, danceT: 0, id: bees.length,
+    });
+    bees.length = n;
+  };
+
+  /* click empty space → plant a flower */
+  cv.addEventListener('pointerdown', e => {
+    const x = e.clientX, y = e.clientY;
+    if (inAvoid(x, y)) return;
+    if (Math.hypot(x - hive.x, y - hive.y) < 70) return;
+    if (flowers.length >= 7) flowers.shift().wilt = 1;
+    flowers.push({ x, y, nectar: 9, max: 9, petal: pal.petals[(Math.random() * pal.petals.length) | 0], born: now, wilt: 0, spin: rand(0, TAU) });
+    // nearby bees notice right away
+    bees.forEach(b => { if (b.state === 'wander' && Math.hypot(b.x - x, b.y - y) < 420 && Math.random() < .7) { b.state = 'go'; b.target = flowers[flowers.length - 1]; } });
+  });
+  addEventListener('pointermove', e => { pointer.vx = e.clientX - pointer.x; pointer.vy = e.clientY - pointer.y; pointer.x = e.clientX; pointer.y = e.clientY; pointer.speed = Math.max(pointer.speed, Math.hypot(pointer.vx, pointer.vy)); }, { passive: true });
+
+  const pickFlower = b => {
+    let best = null, bd = Infinity;
+    for (const f of flowers) { if (f.nectar <= 0 || f.wilt) continue; const d = Math.hypot(f.x - b.x, f.y - b.y) * rand(.8, 1.2); if (d < bd) { bd = d; best = f; } }
+    return best;
+  };
+
+  /* ---------- simulation ---------- */
+  let now = 0;
+  const steer = (b, tx, ty, maxSpeed, k) => {
+    const dx = tx - b.x, dy = ty - b.y, d = Math.hypot(dx, dy) || 1;
+    const sp = Math.min(maxSpeed, d * 2.2);
+    b.vx += (dx / d * sp - b.vx) * k; b.vy += (dy / d * sp - b.vy) * k;
+    return d;
+  };
+  const step = dt => {
+    now += dt; pointer.speed *= Math.exp(-8 * dt);
+    if (avoidDirty || now - avoidT > .4) { readAvoid(); avoidT = now; }
+    for (const b of bees) {
+      b.t += dt; b.wing += dt * (38 + b.speed * .1);
+      // state machine
+      if (b.state === 'wander') {
+        b.wander = clamp(b.wander + (Math.random() - .5) * dt * 3, -1.2, 1.2);
+        b.heading += b.wander * dt * 2.4;
+        const sp = b.speed;
+        b.vx += (Math.cos(b.heading) * sp - b.vx) * Math.min(1, dt * 2); b.vy += (Math.sin(b.heading) * sp - b.vy) * Math.min(1, dt * 2);
+        // drift home if far, look for flowers now and then
+        if (Math.hypot(b.x - hive.x, b.y - hive.y) > Math.max(W, H) * .7) { b.heading = Math.atan2(hive.y - b.y, hive.x - b.x); }
+        if (flowers.length && Math.random() < dt * .5) { const f = pickFlower(b); if (f) { b.state = 'go'; b.target = f; } }
+      } else if (b.state === 'go') {
+        const f = b.target;
+        if (!f || f.nectar <= 0 || f.wilt) { b.state = 'wander'; b.target = null; }
+        else { const d = steer(b, f.x + Math.cos(now * 3 + b.id) * 10, f.y - 8 + Math.sin(now * 4 + b.id) * 6, 150, Math.min(1, dt * 3)); if (d < 16) { b.state = 'sip'; b.t = 0; } }
+      } else if (b.state === 'sip') {
+        const f = b.target;
+        steer(b, f.x + Math.cos(now * 6 + b.id) * 7, f.y - 6 + Math.sin(now * 9 + b.id) * 4, 40, Math.min(1, dt * 6));
+        if (b.t > rand(1.1, 2.2) || f.wilt) { if (f.nectar > 0) { f.nectar--; b.pollen = 1; } b.state = 'home'; }
+      } else if (b.state === 'home') {
+        const d = steer(b, hive.x, hive.y - 18, 140, Math.min(1, dt * 2.4));
+        if (d < 14) { if (b.pollen) { honeyGrams += 2; hive.honey = Math.min(1, hive.honey + .025); } b.pollen = 0; b.state = 'dance'; b.danceT = 0; }
+      } else if (b.state === 'dance') {
+        // waggle dance: a figure-eight beside the hive, then back to work
+        b.danceT += dt; const k = b.danceT * 4.2, cx = hive.x - 44, cy = hive.y - 52;
+        steer(b, cx + Math.sin(k) * 26, cy + Math.sin(k * 2) * 11 + Math.sin(b.danceT * 40) * 1.5, 160, Math.min(1, dt * 8));
+        if (b.danceT > 1.6) { b.state = 'wander'; b.heading = rand(0, TAU); const f = pickFlower(b); if (f) { b.state = 'go'; b.target = f; } }
+      }
+      // fast pointer nearby startles
+      const pd = Math.hypot(b.x - pointer.x, b.y - pointer.y);
+      if (pd < 90 && pointer.speed > 18) { b.startle = 1; const k = (90 - pd) / 90; b.vx += (b.x - pointer.x) / (pd || 1) * 900 * k * dt; b.vy += (b.y - pointer.y) / (pd || 1) * 900 * k * dt; }
+      b.startle *= Math.exp(-3 * dt);
+      // keep out of text blocks, push out along the nearest edge
+      if (b.state !== 'sip') for (const a of avoid) {
+        if (b.x > a.l && b.x < a.r && b.y > a.t && b.y < a.b) {
+          const dl = b.x - a.l, dr = a.r - b.x, dtp = b.y - a.t, db = a.b - b.y, m = Math.min(dl, dr, dtp, db), push = 520 * dt;
+          if (m === dl) b.vx -= push; else if (m === dr) b.vx += push; else if (m === dtp) b.vy -= push; else b.vy += push;
+          if (b.state === 'wander') b.heading = Math.atan2(b.vy, b.vx);
+        }
+      }
+      // gentle separation
+      for (const o of bees) { if (o === b) continue; const dx = b.x - o.x, dy = b.y - o.y, d2 = dx * dx + dy * dy; if (d2 < 400 && d2 > .01) { const d = Math.sqrt(d2); b.vx += dx / d * 60 * dt; b.vy += dy / d * 60 * dt; } }
+      // screen edges
+      if (b.x < 10) b.vx += 300 * dt; if (b.x > W - 10) b.vx -= 300 * dt; if (b.y < 10) b.vy += 300 * dt; if (b.y > H - 10) b.vy -= 300 * dt;
+      const vmax = 220; const v = Math.hypot(b.vx, b.vy); if (v > vmax) { b.vx *= vmax / v; b.vy *= vmax / v; }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      // trail: a dotted flight path that fades (a dance you can read)
+      const ci = (b.y / CH | 0) * cols + (b.x / CW | 0);
+      if (ci >= 0 && ci < trail.length) trail[ci] = Math.max(trail[ci], b.pollen ? 1.6 : 1);
+    }
+    for (const f of flowers) { if (f.nectar <= 0 && !f.wilt) f.wilt = .001; if (f.wilt) f.wilt += dt * .6; }
+    for (let i = flowers.length - 1; i >= 0; i--) if (flowers[i].wilt > 1) flowers.splice(i, 1);
+    const k = Math.exp(-dt * .9); for (let i = 0; i < trail.length; i++) trail[i] *= k;
+    hive.honey = Math.max(.08, hive.honey - dt * .002);
+  };
+
+  /* ---------- raster: everything is a character in a cell ---------- */
+  const put = (cx, cy, ch, c, a = 1) => {
+    if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) return;
+    const i = cy * cols + cx; if (a < alpha[i] && glyph[i]) return;
+    glyph[i] = ch; colr[i] = c; alpha[i] = a;
+  };
+  const toCell = (x, y) => [Math.round(x / CW), Math.round(y / CH)];
+  const drawHive = () => {
+    const [hx, hy] = toCell(hive.x, hive.y);
+    // a straw skep, coils of rope, honey showing through as it fills
+    const art = [
+      '   .-~~-.   ',
+      '  /======\\  ',
+      ' /========\\ ',
+      '|==========|',
+      '|====()====|',
+      " '--------' ",
+    ];
+    const fillRows = Math.round(hive.honey * 4);
+    art.forEach((line, r) => [...line].forEach((ch, c) => {
+      if (ch === ' ') return;
+      const honeyRow = r >= 5 - fillRows && r >= 1 && r <= 4 && ch === '=';
+      put(hx - 6 + c, hy - 5 + r, honeyRow ? '#' : ch, honeyRow ? pal.amber : pal.hive, honeyRow ? .95 : .9);
+    }));
+  };
+  const drawFlower = f => {
+    const [cx, cy] = toCell(f.x, f.y), grow = clamp((now - f.born) / .5, 0, 1), w = f.wilt;
+    if (w) { // petals fall
+      for (let i = 0; i < 6; i++) put(cx + Math.round(Math.cos(i + f.spin) * 2), cy + Math.round(w * 4 + i % 2), ',', f.petal, 1 - w);
+      put(cx, cy + 1, '|', pal.stem, (1 - w) * .8); return;
+    }
+    const full = f.nectar / f.max;
+    put(cx, cy + 1, '|', pal.stem, .8); put(cx, cy + 2, '|', pal.stem, .8); put(cx - 1, cy + 2, '\\', pal.stem, .7); put(cx + 1, cy + 3, '/', pal.stem, .6);
+    if (grow > .4) { put(cx - 1, cy, 'o', f.petal, .9 * grow); put(cx + 1, cy, 'o', f.petal, .9 * grow); put(cx, cy - 1, 'o', f.petal, .9 * grow); }
+    if (grow > .8) { put(cx - 1, cy - 1, '.', f.petal, .7); put(cx + 1, cy - 1, '.', f.petal, .7); }
+    put(cx, cy, full > .5 ? '@' : full > 0 ? '*' : '.', pal.amber, 1);
+  };
+  const drawBee = b => {
+    const h = Math.atan2(b.vy, b.vx), ux = Math.cos(h), uy = Math.sin(h);
+    const seg = (k, ch, c, a = 1) => { const [x, y] = toCell(b.x - ux * k * CW, b.y - uy * k * CH * .7); put(x, y, ch, c, a); };
+    seg(-.6, 'o', pal.ink);                // head
+    seg(.5, b.pollen ? '#' : '=', b.pollen ? pal.amber : pal.ink);
+    seg(1.4, '#', pal.amber);              // stripes
+    seg(2.2, '=', pal.ink, .9);
+    // wings beat: glyph and side swap every few frames
+    const wp = (Math.sin(b.wing) + 1) / 2, wings = ['-', '~', '^', '`'];
+    const ch = wings[Math.min(3, (wp * 4) | 0)], px = -uy, py = ux;
+    for (const s of [-1, 1]) { const [x, y] = toCell(b.x - ux * .8 * CW + px * s * CW * 1.1, b.y - uy * .8 * CH * .7 + py * s * CH * .8 - 3); put(x, y, ch, pal.wing, .8); }
+  };
+  const render = () => {
+    g.fillStyle = pal.bg; g.fillRect(0, 0, W, H);
+    glyph.fill(undefined); alpha.fill(0);
+    // the field: a faint dot grid that warms where bees have flown
+    for (let i = 0; i < trail.length; i++) { const t = trail[i]; if (t > .04) { glyph[i] = t > 1.05 ? ':' : t > .5 ? '·' : '.'; colr[i] = t > 1.05 ? pal.amber : pal.dot; alpha[i] = Math.min(.55, t * .35); } }
+    drawHive(); flowers.forEach(drawFlower); bees.forEach(drawBee);
+    g.font = `${Math.round(CH * .82)}px 'Geist Mono', ui-monospace, monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      const i = y * cols + x, ch = glyph[i]; if (!ch) continue;
+      const c = colr[i]; g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha[i]})`; g.fillText(ch, x * CW + CW / 2, y * CH + CH / 2);
+    }
+  };
+
+  /* ---------- counters ---------- */
+  const cB = document.getElementById('cBees'), cF = document.getElementById('cFlowers'), cH = document.getElementById('cHoney');
+  const counters = () => { cB.textContent = bees.length; cF.textContent = flowers.filter(f => !f.wilt).length; cH.textContent = honeyGrams; };
+
+  /* ---------- go ---------- */
+  resize(); addEventListener('resize', () => { resize(); spawnBees(); });
+  spawnBees();
+  // a first flower so the page is alive before anyone clicks
+  setTimeout(() => { if (!flowers.length) { const x = W * (W < 700 ? .5 : .62), y = H * .32; flowers.push({ x, y, nectar: 9, max: 9, petal: pal.petals[0], born: now, wilt: 0, spin: 0 }); } }, 900);
+  let last = performance.now();
+  const frame = t => {
+    requestAnimationFrame(frame);
+    const dt = Math.min(.05, (t - last) / 1000); last = t;
+    if (!reduce) step(dt); else if (now < .01) step(.016);
+    render(); counters();
+  };
+  requestAnimationFrame(frame);
+  window.hive9 = { flowers, bees, hive, plant: (x, y) => cv.dispatchEvent(new PointerEvent('pointerdown', { clientX: x, clientY: y })) };
+})();
+</script>
+</body>
+</html>
