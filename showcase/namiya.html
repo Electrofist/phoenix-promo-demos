@@ -301,7 +301,11 @@ function makeKoi(i) {
   const base = clamp(Math.min(W, H) * .27, 120, 270), deep = i % 3 === 2, scale = deep ? rnd(.55, .75) : rnd(.8, 1), L = base * scale, lk = look(KINDS[i % KINDS.length]);
   let x, y, h, t = 0;
   do { x = rnd(60, W - 60); y = rnd(60, H - 60); h = rnd(0, TAU); }
-  while (++t < 120 && [0, .5, 1].some(f => hitsRect(x - Math.cos(h) * L * f, y - Math.sin(h) * L * f, 40)));
+  while (++t < 200 && [0, .25, .5, .75, 1].some(f => {
+    const px = x - Math.cos(h) * L * f, py = y - Math.sin(h) * L * f;
+    return hitsRect(px, py, 40) || pads.some(p => Math.hypot(p.x - px, p.y - py) < p.r + L * .3) ||
+           koi.some(o => { for (let j = 0; j < N; j += 2) if (Math.hypot(o.nodes[2 * j] - px, o.nodes[2 * j + 1] - py) < (L * .16 + o.maxW) * 1.6 + 40) return true; return false; });
+  }));
   const seg = L / (N - 1), nodes = new Float32Array(N * 2);
   for (let j = 0; j < N; j++) { nodes[2 * j] = x - Math.cos(h) * seg * j; nodes[2 * j + 1] = y - Math.sin(h) * seg * j; }
   return { deep, warm: !!lk.warm, color: lk.body, spots: lk.S, L, seg, maxW: L * .16, scale, h, nodes, speed: 30, cruise: rnd(24, 38) * (.75 + scale * .35),
@@ -315,6 +319,8 @@ function makePads() {
     pads.push({ x, y, r, rot: rnd(0, TAU), vr: rnd(-.04, .04), vx: rnd(-2.5, 2.5), vy: rnd(-2, 2), notch: rnd(.4, .65), flower: i % 2 === 0, bob: 0 });
   }
 }
+// clearance between two fish: both half-widths plus fins, plus a cell and a half of empty grid between them
+const gap = (a, b) => (a.maxW + b.maxW) * 1.3 + CELL * 1.5;
 const hitsRect = (x, y, m) => rects.some(r => x > r.l - m && x < r.r + m && y > r.t - m && y < r.b + m);
 
 /* ---------- simulation ---------- */
@@ -339,11 +345,21 @@ function stepKoi(k, dt) {
     if (d === 0) { dx = hx - (r.l + r.r) / 2; dy = hy - (r.t + r.b) / 2; d = Math.hypot(dx, dy) || 1; sx += dx / d * 4; sy += dy / d * 4; target = k.cruise * 1.8; }
     else if (d < R) { const f = (1 - d / R) * 3; sx += dx / d * f; sy += dy / d * f; }
   }
+  // keep well clear of every other fish's whole body (deep ones too) and of the lily pads,
+  // checking both the head and a point ahead of it, so shapes never overlap and each fish stays readable
+  const ax2 = hx + Math.cos(k.h) * k.L * .3, ay2 = hy + Math.sin(k.h) * k.L * .3;
+  const avoid = (ox, oy, cl, R) => {
+    for (const [px, py, w] of [[hx, hy, 1], [ax2, ay2, .7]]) {
+      const dx = px - ox, dy = py - oy, d = Math.hypot(dx, dy);
+      if (d < R && d > 0) { const f = (1 - d / R) ** 2 * 6 * w; sx += dx / d * f; sy += dy / d * f; if (d < cl * 1.4) target = Math.min(target, k.cruise * .8); }
+    }
+  };
   for (const o of koi) {
-    if (o === k || o.deep !== k.deep) continue;
-    const dx = hx - o.nodes[0], dy = hy - o.nodes[1], d = Math.hypot(dx, dy), R = (k.L + o.L) * .3;
-    if (d < R && d > 0) { const f = (1 - d / R) * 1.1; sx += dx / d * f; sy += dy / d * f; }
+    if (o === k) continue;
+    const cl = gap(k, o), R = cl + k.L * .5;
+    for (let j = 0; j < N; j += 2) avoid(o.nodes[2 * j], o.nodes[2 * j + 1], cl, R);
   }
+  for (const p of pads) { const cl = p.r + k.maxW * 1.3 + CELL; avoid(p.x, p.y, cl, cl + k.L * .4); }
   if (k.food && !pellets.includes(k.food)) k.food = null;
   if (!k.food) { let bd = 600 * 600; for (const p of pellets) { const d = (p.x - hx) ** 2 + (p.y - hy) ** 2; if (d < bd) { bd = d; k.food = p; } } }
   if (k.food) {
@@ -361,6 +377,11 @@ function stepKoi(k, dt) {
   k.speed += (target * (reduce ? .5 : 1) - k.speed) * Math.min(1, dt * (k.startle > 0 ? 6 : 1.6));
   const e = k.maxW * 1.5;
   n[0] = clamp(hx + Math.cos(k.h) * k.speed * dt, e, W - e); n[1] = clamp(hy + Math.sin(k.h) * k.speed * dt, e, H - e);
+  // hard rule: the head may never enter another fish or a pad (the body follows the head, so bodies never cross either)
+  const push = (ox, oy, cl) => { const dx = n[0] - ox, dy = n[1] - oy, d = Math.hypot(dx, dy) || .01; if (d < cl) { n[0] = ox + dx / d * cl; n[1] = oy + dy / d * cl; } };
+  for (const o of koi) { if (o === k) continue; const cl = gap(k, o); for (let j = 0; j < N; j++) push(o.nodes[2 * j], o.nodes[2 * j + 1], cl); }
+  for (const p of pads) push(p.x, p.y, p.r + k.maxW * 1.3 + CELL);
+  n[0] = clamp(n[0], e, W - e); n[1] = clamp(n[1], e, H - e);
   for (let j = 1; j < N; j++) {
     const px = n[2 * j - 2], py = n[2 * j - 1], dx = n[2 * j] - px, dy = n[2 * j + 1] - py, d = Math.hypot(dx, dy) || 1;
     n[2 * j] = px + dx / d * k.seg; n[2 * j + 1] = py + dy / d * k.seg;
@@ -380,6 +401,11 @@ function step(dt) {
   wake = wake.filter(w => time - w.born < 2.4);
   for (const p of pads) {
     p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; p.bob = Math.max(0, p.bob - dt * 1.5);
+    // pads drift away from any fish body too
+    for (const k of koi) for (let j = 0; j < N; j += 3) {
+      const dx = p.x - k.nodes[2 * j], dy = p.y - k.nodes[2 * j + 1], d = Math.hypot(dx, dy) || 1, cl = p.r + k.maxW * 1.3 + CELL;
+      if (d < cl) { p.x += dx / d * (cl - d) * Math.min(1, dt * 6); p.y += dy / d * (cl - d) * Math.min(1, dt * 6); }
+    }
     if (p.x < p.r || p.x > W - p.r) p.vx *= -1; if (p.y < p.r + 40 || p.y > H - p.r - 40) p.vy *= -1;
     for (const r of rects) if (p.x > r.l - p.r && p.x < r.r + p.r && p.y > r.t - p.r && p.y < r.b + p.r) { const dx = p.x - (r.l + r.r) / 2, dy = p.y - (r.t + r.b) / 2, d = Math.hypot(dx, dy) || 1; p.x += dx / d * 40 * dt; p.y += dy / d * 40 * dt; }
   }
