@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-skin="Retro 95">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phoenix OS · Retro 95</title>
+<link rel="stylesheet" href="os.css">
+<style>
+  /* Retro 95 skin: inspired by Windows 95. Teal desktop, grey bevels, navy title bars, a Start button. */
+  :root{
+    --font:Tahoma,'Segoe UI','MS Sans Serif',Geneva,sans-serif; --font-mono:'Courier New',Courier,monospace;
+    --text:#000; --text-dim:#404040; --accent:#000080; --accent-ink:#fff;
+    --out:inset -1px -1px #0a0a0a,inset 1px 1px #dfdfdf,inset -2px -2px #808080,inset 2px 2px #fff;
+    --in:inset -1px -1px #fff,inset 1px 1px #0a0a0a,inset -2px -2px #dfdfdf,inset 2px 2px #808080;
+    --wallpaper:#008080;
+    --menubar-bg:#c0c0c0; --menubar-text:#000; --menubar-border:#808080; --menubar-h:26px;
+    --win-bg:#c0c0c0; --win-border:none; --win-radius:0; --win-shadow:var(--out),2px 2px 0 rgba(0,0,0,.25); --win-blur:none;
+    --title-bg:linear-gradient(90deg,#000080,#1084d0); --title-bg-inactive:linear-gradient(90deg,#808080,#b5b5b5); --title-text:#fff;
+    --title-h:22px; --title-dir:row-reverse; --title-align:left; --title-weight:700; --title-size:12px; --inactive-title-opacity:1;
+    --wbtn-size:16px; --wbtn-radius:0; --wbtn-close:#c0c0c0; --wbtn-min:#c0c0c0; --wbtn-max:#c0c0c0; --wbtn-ink:#000; --wbtn-glyph:1; --wbtn-shadow:var(--out); --wbtn-gap:2px;
+    --panel:#fff; --panel-2:#c0c0c0; --line:#808080;
+    --btn-bg:#c0c0c0; --btn-text:#000; --btn-border:none; --btn-radius:0; --btn-shadow:var(--out);
+    --dock-bg:#c0c0c0; --dock-border:none; --dock-radius:0; --dock-blur:none; --dock-shadow:inset 0 1px #fff,inset 0 2px #dfdfdf; --dock-pad:4px;
+    --tile-radius:0; --tile-size:30px; --icon-ink:#fff; --tile-shadow:none; --icon-stroke:2.2;
+    --t-terminal:#000; --t-files:#c9a400; --t-notes:#008080; --t-paint:#800080; --t-music:#000080; --t-snake:#008000;
+    --t-code:#808000; --t-settings:#808080; --t-about:#000080; --t-trash:#808080;
+    --term-bg:#000; --term-text:#c0c0c0; --term-prompt:#fff; --term-dim:#808080;
+    --paper:#fff; --sel:#000080; --label-bg:#ffffe1; --label-text:#000; --desk-label:#fff; --desk-label-shadow:none;
+    --step-radius:0; --step-on-shadow:none; --snake-radius:0; --notes-bg:#fff;
+    --boot-bg:#000; --boot-text:#c0c0c0; --open-anim:none;
+  }
+  body{font-size:12px}
+  .win{padding:3px}
+  .win.max{height:calc(100% - 38px)!important}
+  .win-title{padding:0 3px 0 6px;gap:4px}
+  .wbtn{width:16px;height:14px}
+  .wbtn svg{width:9px;height:9px;stroke-width:3}
+  .wbtn:active{box-shadow:var(--in)}
+  .win-body{margin-top:2px}
+  .ui-btn{font-weight:400;padding:4px 12px;min-width:72px}
+  .ui-btn:active,.ui-btn.on{box-shadow:var(--in);transform:none}
+  .ui-btn.primary{background:#c0c0c0;color:#000;outline:1px solid #000;outline-offset:-4px}
+  .ui-btn.on{background:#d4d4d4;color:#000}
+  .term,.notes,.code textarea,.paint-wrap,.files-grid,.viz,.snake-wrap{box-shadow:var(--in)}
+  .menubar{box-shadow:inset 0 -1px #808080,inset 0 1px #fff;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .mb-logo{color:#000}
+  .mb-search,.mb-right>span{box-shadow:var(--in);border-radius:0;background:#c0c0c0;padding:1px 8px}
+  .dock{left:0;right:0;bottom:0;translate:none;max-width:none;justify-content:flex-start;gap:4px;align-items:center}
+  .start-btn{display:flex;align-items:center;gap:6px;padding:3px 8px;font-weight:700;box-shadow:var(--out);margin-right:6px;font-size:13px}
+  .start-btn svg{width:16px;height:16px;color:#c00}
+  .start-btn:active{box-shadow:var(--in)}
+  .dock-item{padding:3px;box-shadow:var(--out)}
+  .dock-item.running{box-shadow:var(--in);background:repeating-conic-gradient(#c0c0c0 0 25%,#dcdcdc 0 50%) 0 0/2px 2px}
+  .dock-item:hover{transform:none}
+  .dock-item::after,.dock-sep{display:none}
+  .desk-icons{left:14px;right:auto}
+  .desk-icon .tile{--tile-size:34px}
+  .desk-icon:hover,.desk-icon:focus-visible{background:none;outline:1px dotted #fff}
+  .watermark{display:none}
+  .files-side span.on,.spot-item.on{background:#000080;color:#fff;border-radius:0}
+  .ctx,.spot-box{border-radius:0;box-shadow:var(--out),2px 2px 0 rgba(0,0,0,.3)}
+  .ctx button,.spot-item{border-radius:0}
+  .boot-logo{color:#c00}
+  .term .acc{color:#55ffff}
+  .step{background:#fff;box-shadow:var(--in)}
+  .step.on{background:#000080;box-shadow:var(--in)}
+  .step.q:not(.on){background:#e6e6e6}
+</style>
+</head>
+<body>
+<script src="os.js"></script>
+</body>
+</html>
