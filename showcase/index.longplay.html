@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Long Play · a listening pizzeria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #0f0d0c; --panel: #171412; --cream: #f1e9dc; --mute: rgba(241,233,220,.6); --line: rgba(241,233,220,.12); --red: #e63b2e; --gold: #e3b04b; --serif: 'Instrument Serif', Georgia, serif; --sans: 'Space Grotesk', system-ui, sans-serif; --mono: 'Space Mono', ui-monospace, monospace; }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  .mono { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+
+  header.top { position: fixed; inset: 0 0 auto 0; z-index: 30; display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(16px, 3vw, 40px); mix-blend-mode: difference; }
+  .brand { font-family: var(--serif); font-size: 26px; letter-spacing: -.01em; text-decoration: none; }
+  .brand em { color: var(--gold); font-style: italic; }
+  header nav { display: flex; gap: 24px; font-size: 14px; }
+  header nav a { text-decoration: none; opacity: .8; } header nav a:hover { opacity: 1; }
+  .btn { font: 500 14px var(--sans); background: var(--cream); color: var(--bg); border: 0; padding: 12px 18px; border-radius: 99px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn.red { background: var(--red); color: #fff; }
+  .btn.ghost { background: transparent; color: var(--cream); border: 1px solid var(--line); }
+  .btn:hover { filter: brightness(1.1); }
+  .btn[disabled] { opacity: .4; pointer-events: none; }
+
+  /* stage */
+  .stage { position: fixed; inset: 0; z-index: 0; }
+  #gl { width: 100%; height: 100%; display: block; }
+  main { position: relative; z-index: 1; }
+
+  .hero { height: 100vh; min-height: 640px; display: grid; align-content: end; padding: 0 clamp(16px, 3vw, 40px) clamp(28px, 6vh, 60px); pointer-events: none; }
+  .hero > * { pointer-events: auto; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(56px, 10vw, 150px); line-height: .9; letter-spacing: -.03em; max-width: 9ch; }
+  .hero h1 em { color: var(--gold); }
+  .hero .sub { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-top: 22px; flex-wrap: wrap; }
+  .hero .sub p { max-width: 40ch; color: var(--mute); }
+  .rpm { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--mute); }
+  .rpm b { color: var(--gold); font-weight: 400; }
+
+  /* builder */
+  .build { padding: clamp(60px, 10vh, 120px) clamp(16px, 3vw, 40px) 40px; display: grid; grid-template-columns: minmax(0, 520px) 1fr; gap: 40px; min-height: 100vh; }
+  .steps { display: grid; gap: 14px; align-content: start; }
+  .step { background: rgba(23,20,18,.86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+  .step-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  .step-head h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; letter-spacing: -.02em; }
+  .step-head h2 em { color: var(--gold); }
+  .step.done .step-head .mono { color: var(--gold); }
+  .pies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pie { background: transparent; border: 1px solid var(--line); border-radius: 14px; padding: 12px; color: var(--cream); cursor: pointer; text-align: left; font: inherit; transition: border-color .2s, background .2s; }
+  .pie:hover { border-color: rgba(241,233,220,.4); }
+  .pie[aria-pressed="true"] { border-color: var(--gold); background: rgba(227,176,75,.08); }
+  .pie b { display: block; font-family: var(--serif); font-size: 22px; letter-spacing: -.01em; }
+  .pie span { color: var(--mute); font-size: 13px; }
+  .pie .price { display: block; margin-top: 10px; font-family: var(--mono); font-size: 12px; }
+  .records { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+  .records::-webkit-scrollbar { height: 0 }
+  .rec { flex: 0 0 136px; scroll-snap-align: start; background: transparent; border: 0; padding: 0; color: var(--cream); cursor: pointer; text-align: left; font: inherit; }
+  .rec img { width: 136px; height: 136px; display: block; border-radius: 4px; transition: transform .4s cubic-bezier(.2,.8,.2,1); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .rec:hover img { transform: translateY(-4px); }
+  .rec[aria-pressed="true"] img { outline: 2px solid var(--gold); outline-offset: 3px; }
+  .rec b { display: block; margin-top: 8px; font-size: 14px; }
+  .rec span { color: var(--mute); font-size: 12px; }
+  .now { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .eq { display: flex; gap: 3px; align-items: end; height: 18px; }
+  .eq i { width: 3px; background: var(--gold); height: 4px; border-radius: 2px; transition: height .12s; }
+  .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .slot { font: 500 14px var(--mono); padding: 10px 0; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--cream); cursor: pointer; }
+  .slot[aria-pressed="true"] { background: var(--cream); color: var(--bg); border-color: var(--cream); }
+  .tables { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px; }
+  .table { aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--cream); font: 500 13px var(--mono); cursor: pointer; }
+  .table[aria-pressed="true"] { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+  .table[disabled] { opacity: .25; cursor: not-allowed; text-decoration: line-through; }
+  .summary { font-family: var(--serif); font-size: 22px; line-height: 1.2; margin: 6px 0 14px; min-height: 2.4em; }
+  .summary em { color: var(--gold); }
+
+  /* rotation + visit */
+  .rotation { padding: clamp(60px, 10vh, 120px) clamp(16px, 3vw, 40px); background: var(--bg); border-top: 1px solid var(--line); }
+  .rotation h2, .visit h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6vw, 84px); line-height: .95; letter-spacing: -.03em; }
+  .rotation h2 em, .visit h2 em { color: var(--gold); }
+  .rows { margin-top: 36px; border-top: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: 80px 1fr 1fr 120px; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+  .row b { font-family: var(--serif); font-weight: 400; font-size: 24px; }
+  .row span { color: var(--mute); }
+  .visit { padding: clamp(60px, 10vh, 120px) clamp(16px, 3vw, 40px); background: var(--bg); display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: end; }
+  .visit p { color: var(--mute); max-width: 40ch; margin-top: 18px; }
+  .hours { border-top: 1px solid var(--line); }
+  .hours div { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .hours span:last-child { font-family: var(--serif); font-size: 18px; }
+  footer { background: var(--bg); padding: 30px clamp(16px, 3vw, 40px) 50px; font-size: 12px; color: var(--mute); line-height: 1.7; }
+
+  /* ticket */
+  .ticket-wrap { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,.7); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; visibility: hidden; transition: opacity .3s, visibility 0s .3s; }
+  .ticket-wrap.open { opacity: 1; visibility: visible; transition: opacity .3s; }
+  .ticket { width: min(92vw, 380px); background: #f6f1e7; color: #15110f; padding: 28px 26px 34px; border-radius: 6px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; position: relative; transform: translateY(40px) rotate(-2deg); transition: transform .5s cubic-bezier(.2,1.4,.4,1); -webkit-mask: radial-gradient(8px at 8px 100%, transparent 98%, #000) -8px 0 / 24px 100% repeat-x, linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 10px) no-repeat; }
+  .ticket-wrap.open .ticket { transform: none; }
+  .ticket h3 { font-family: var(--serif); font-weight: 400; font-size: 36px; letter-spacing: -.02em; line-height: 1; margin-bottom: 4px; }
+  .ticket .line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,.25); }
+  .ticket .big { font-size: 22px; font-family: var(--serif); letter-spacing: 0; }
+  .ticket .foot { margin-top: 18px; font-size: 11px; color: rgba(0,0,0,.6); }
+  .ticket .close { position: absolute; top: 10px; right: 10px; border: 0; background: transparent; font: 20px var(--sans); cursor: pointer; }
+  .barcode { height: 36px; margin-top: 16px; background: repeating-linear-gradient(90deg, #15110f 0 2px, transparent 2px 4px, #15110f 4px 7px, transparent 7px 9px, #15110f 9px 10px, transparent 10px 13px); }
+
+  @media (max-width: 960px) {
+    header nav { display: none; }
+    .build { grid-template-columns: 1fr; padding-top: 55vh; }
+    .stage { height: 55vh; }
+    .hero { min-height: 0; height: 100vh; }
+    .pies { grid-template-columns: 1fr; }
+    .visit { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 60px 1fr; }
+    .row span:nth-child(3), .row span:nth-child(4) { grid-column: 2; }
+  }
+</style>
+<script>addEventListener('error', e => { (window.__errs = window.__errs || []).push(e.message + ' @' + e.lineno + ':' + e.colno); });</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div class="stage"><canvas id="gl"></canvas></div>
+<header class="top">
+  <a class="brand" href="#">Long <em>Play</em></a>
+  <nav><a href="#build">Build your table</a><a href="#rotation">Tonight</a><a href="#visit">Visit</a></nav>
+  <a class="btn" href="#build">Reserve</a>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <h1>Pizza at <em>33⅓.</em></h1>
+    <div class="sub">
+      <p>A listening pizzeria in Turin. Pick a pie and a record for your table. Both come served; the headphones are on the hook.</p>
+      <div class="rpm" id="rpm">Platter · <b>0.0</b> rpm</div>
+    </div>
+  </section>
+
+  <section class="build" id="build">
+    <div class="steps">
+      <div class="step" id="s1">
+        <div class="step-head"><h2>01 · The <em>pie</em></h2><span class="mono" id="s1tag">Choose one</span></div>
+        <div class="pies" id="pies"></div>
+      </div>
+      <div class="step" id="s2">
+        <div class="step-head"><h2>02 · The <em>record</em></h2><span class="mono" id="s2tag">Side A, 20 min</span></div>
+        <div class="records" id="records"></div>
+        <div class="now"><button class="btn ghost" id="needle" disabled>Drop the needle</button><div class="eq" id="eq"><i></i><i></i><i></i><i></i><i></i></div><span class="mono" id="nowTxt">Pick a record</span></div>
+      </div>
+      <div class="step" id="s3">
+        <div class="step-head"><h2>03 · The <em>table</em></h2><span class="mono">Tonight</span></div>
+        <div class="slots" id="slots"></div>
+        <div class="tables" id="tables"></div>
+        <p class="summary" id="summary">Pick a pie, a record and a seat.</p>
+        <button class="btn red" id="reserve" disabled>Reserve the table</button>
+      </div>
+    </div>
+    <div></div>
+  </section>
+
+  <section class="rotation" id="rotation">
+    <h2>Tonight's <em>rotation.</em></h2>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <section class="visit" id="visit">
+    <div><h2>Via Garibaldi 9,<br><em>Torino.</em></h2><p>Twelve tables, twelve turntables, one oven. Headphones are cleaned between sittings. Talking is allowed between sides.</p></div>
+    <div class="hours"><div><span>Wed – Sat</span><span>18:00 – 00:00</span></div><div><span>Sunday</span><span>12:00 – 17:00</span></div><div><span>Mon – Tue</span><span>Needle up</span></div></div>
+  </section>
+  <footer>Long Play is fictional. The records are invented and the music is generated in the browser; no recordings are used. Built in Phoenix Code with Claude.</footer>
+</main>
+
+<div class="ticket-wrap" id="ticketWrap"><div class="ticket" id="ticket"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= content ================= */
+const PIES = {
+  margherita: { name: 'Margherita', desc: 'San Marzano, fior di latte, basil', price: '€10', spec: { sauce: true, cheese: 10, basil: 5, oil: true } },
+  diavola:    { name: 'Diavola', desc: 'Spicy salami, chili oil', price: '€13', spec: { sauce: true, cheese: 8, top: [['salami', 11, 1.1], ['chili', 30, 1.2]] } },
+  funghi:     { name: 'Funghi', desc: 'Porcini, provola, thyme', price: '€14', spec: { cheese: 8, cheeseTint: 0xf0d7a0, top: [['porcini', 8, 1.05], ['herb', 40, 1.2], ['pepper', 50, 1.2]] } },
+};
+const RECORDS = [
+  { t: 'Blue Hours', a: 'Marta Vieri', g: 'Jazz · 1972', pal: ['#1d3c8f', '#f1e9dc', '#e3b04b'], pat: 'circles', bpm: 84, root: 50, mode: [0, 3, 5, 7, 10], chords: [[0, 3, 7, 10], [5, 8, 12, 15], [3, 7, 10, 14], [-2, 2, 5, 9]] },
+  { t: 'Terrazzo', a: 'Gli Ottimi', g: 'Italo disco · 1983', pal: ['#e63b2e', '#f6d8b8', '#1a1a1a'], pat: 'stripes', bpm: 118, root: 45, mode: [0, 2, 4, 7, 9], chords: [[0, 4, 7, 11], [5, 9, 12, 16], [7, 11, 14, 17], [2, 5, 9, 12]] },
+  { t: 'Slow Oven', a: 'Dust & Needle', g: 'Downtempo · 2019', pal: ['#2a2a2a', '#e3b04b', '#f1e9dc'], pat: 'grid', bpm: 72, root: 43, mode: [0, 3, 5, 7, 10], chords: [[0, 3, 7, 14], [-2, 2, 5, 12], [3, 7, 10, 17], [-4, 0, 3, 10]] },
+  { t: 'Via Po', a: 'Elena Costa', g: 'Bossa · 1966', pal: ['#2f7a4a', '#f1e9dc', '#e63b2e'], pat: 'blob', bpm: 96, root: 48, mode: [0, 2, 4, 7, 9], chords: [[0, 4, 7, 11], [-3, 0, 4, 7], [-5, -1, 2, 7], [-7, -3, 0, 4]] },
+  { t: 'Night Bus 61', a: 'Kesselring', g: 'Ambient · 2004', pal: ['#121a2e', '#6b86d6', '#f1e9dc'], pat: 'circles', bpm: 60, root: 41, mode: [0, 2, 3, 7, 10], chords: [[0, 7, 14, 17], [-2, 5, 12, 15], [-4, 3, 10, 14], [-5, 2, 9, 14]] },
+  { t: 'Cornicione', a: 'The Leopards', g: 'Garage · 1991', pal: ['#f1e9dc', '#1a1a1a', '#e63b2e'], pat: 'stripes', bpm: 132, root: 40, mode: [0, 3, 5, 6, 7, 10], chords: [[0, 7, 12], [5, 12, 17], [3, 10, 15], [7, 14, 19]] },
+];
+const SLOTS = ['18:00', '19:30', '21:00', '22:30'];
+const TAKEN = { '18:00': [2, 7], '19:30': [1, 4, 9, 11], '21:00': [3], '22:30': [5, 6, 10] };
+
+/* ================= sleeve art, generated ================= */
+const sleeveCanvas = (r, size = 512) => {
+  const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d'); const R = rng(r.t.length * 7 + r.bpm);
+  const [bg, fg, ac] = r.pal; g.fillStyle = bg; g.fillRect(0, 0, size, size);
+  if (r.pat === 'circles') for (let i = 0; i < 7; i++) { g.strokeStyle = i % 2 ? fg : ac; g.lineWidth = 14 + R() * 10; g.beginPath(); g.arc(size * .62, size * .42, size * .06 + i * size * .07, 0, 7); g.stroke(); }
+  if (r.pat === 'stripes') for (let i = 0; i < 12; i++) { g.fillStyle = i % 3 === 0 ? ac : fg; g.save(); g.translate(size / 2, size / 2); g.rotate(-.45); g.fillRect(-size, -size * .6 + i * size * .1, size * 2, size * .045 + R() * 20); g.restore(); }
+  if (r.pat === 'grid') for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { if (R() < .55) continue; g.fillStyle = R() < .3 ? ac : fg; const s = size / 8; g.fillRect(x * s + 6, y * s + 6, s - 12, s - 12); }
+  if (r.pat === 'blob') { g.fillStyle = fg; g.beginPath(); for (let i = 0; i <= 40; i++) { const a = i / 40 * 6.283, rad = size * (.26 + .07 * Math.sin(a * 3 + 1) + .04 * Math.sin(a * 7)); const x = size * .55 + Math.cos(a) * rad, y = size * .45 + Math.sin(a) * rad; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.fill(); g.fillStyle = ac; g.beginPath(); g.arc(size * .3, size * .66, size * .09, 0, 7); g.fill(); }
+  g.fillStyle = r.pal[1] === bg ? ac : (r.pat === 'stripes' ? bg : fg);
+  g.font = `400 ${size * .13}px 'Instrument Serif', serif`; g.fillText(r.t, size * .06, size * .9);
+  g.font = `${size * .035}px 'Space Mono', monospace`; g.fillText((r.a + ' · ' + r.g).toUpperCase(), size * .06, size * .11);
+  return c;
+};
+
+/* ================= DOM: steps ================= */
+const state = { pie: null, rec: null, slot: null, table: null, playing: false };
+const piesEl = document.getElementById('pies');
+Object.entries(PIES).forEach(([k, p]) => { const b = document.createElement('button'); b.className = 'pie'; b.dataset.k = k; b.innerHTML = `<b>${p.name}</b><span>${p.desc}</span><span class="price">${p.price}</span>`; b.onclick = () => pickPie(k); piesEl.appendChild(b); });
+const recsEl = document.getElementById('records');
+RECORDS.forEach((r, i) => { const b = document.createElement('button'); b.className = 'rec'; b.dataset.i = i; const img = sleeveCanvas(r, 272); b.appendChild(img); b.insertAdjacentHTML('beforeend', `<b>${r.t}</b><span>${r.a} · ${r.g}</span>`); img.style.cssText = 'width:136px;height:136px;display:block;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.5);transition:transform .4s cubic-bezier(.2,.8,.2,1)'; b.onclick = () => pickRecord(i); recsEl.appendChild(b); });
+const slotsEl = document.getElementById('slots'), tablesEl = document.getElementById('tables');
+SLOTS.forEach(s => { const b = document.createElement('button'); b.className = 'slot'; b.textContent = s; b.onclick = () => { state.slot = s; state.table = null; renderTables(); sync(); }; slotsEl.appendChild(b); });
+function renderTables() { tablesEl.innerHTML = ''; for (let i = 1; i <= 12; i++) { const b = document.createElement('button'); b.className = 'table'; b.textContent = i; const taken = state.slot && TAKEN[state.slot].includes(i); if (taken || !state.slot) b.disabled = true; b.setAttribute('aria-pressed', state.table === i); b.onclick = () => { state.table = i; sync(); }; tablesEl.appendChild(b); } }
+renderTables();
+document.getElementById('rows').innerHTML = RECORDS.map((r, i) => `<div class="row"><span class="mono">${SLOTS[i % 4]}</span><b>${r.t}</b><span>${r.a} · ${r.g}</span><span class="mono">Table ${(i * 5) % 12 + 1}</span></div>`).join('');
+
+function sync() {
+  piesEl.querySelectorAll('.pie').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === state.pie));
+  recsEl.querySelectorAll('.rec').forEach(b => b.setAttribute('aria-pressed', +b.dataset.i === state.rec));
+  slotsEl.querySelectorAll('.slot').forEach(b => b.setAttribute('aria-pressed', b.textContent === state.slot));
+  document.getElementById('s1').classList.toggle('done', !!state.pie); document.getElementById('s2').classList.toggle('done', state.rec !== null);
+  document.getElementById('s1tag').textContent = state.pie ? PIES[state.pie].name + ' on the platter' : 'Choose one';
+  document.getElementById('needle').disabled = state.rec === null;
+  const r = state.rec !== null ? RECORDS[state.rec] : null;
+  document.getElementById('nowTxt').textContent = r ? (state.playing ? `Playing · ${r.t}` : `${r.t} · ready`) : 'Pick a record';
+  const parts = [];
+  if (state.pie) parts.push(`<em>${PIES[state.pie].name}</em>`); if (r) parts.push(`<em>${r.t}</em>, side A`); if (state.slot && state.table) parts.push(`table <em>${state.table}</em> at <em>${state.slot}</em>`);
+  document.getElementById('summary').innerHTML = parts.length ? parts.join(' + ') + '.' : 'Pick a pie, a record and a seat.';
+  document.getElementById('reserve').disabled = !(state.pie && r && state.slot && state.table);
+}
+function pickPie(k) { state.pie = k; sync(); scene3d.setPie(k); }
+function pickRecord(i) { state.rec = i; if (state.playing) audio.stop(); state.playing = false; sync(); scene3d.setRecord(i); }
+document.getElementById('needle').onclick = () => { if (state.playing) { audio.stop(); state.playing = false; scene3d.lift(); } else { audio.play(RECORDS[state.rec]); state.playing = true; scene3d.drop(); } document.getElementById('needle').textContent = state.playing ? 'Lift the needle' : 'Drop the needle'; sync(); };
+document.getElementById('reserve').onclick = () => {
+  const p = PIES[state.pie], r = RECORDS[state.rec], n = 'LP-' + (1000 + Math.floor(Math.random() * 9000));
+  document.getElementById('ticket').innerHTML = `<button class="close" aria-label="Close">×</button><div class="mono">Long Play · Torino</div><h3>Table ${state.table}</h3><div class="mono" style="margin-bottom:14px">${state.slot} tonight · ${n}</div>
+    <div class="line"><span>PIE</span><span class="big">${p.name}</span></div><div class="line"><span>RECORD</span><span class="big">${r.t}</span></div><div class="line"><span>SIDE</span><span>A, then B on request</span></div><div class="line"><span>HEADPHONES</span><span>On the hook</span></div>
+    <div class="barcode"></div><div class="foot">Show this at the door. The pie goes in the oven when the needle drops.</div>`;
+  document.getElementById('ticketWrap').classList.add('open');
+  document.getElementById('ticket').querySelector('.close').onclick = closeTicket;
+};
+const closeTicket = () => document.getElementById('ticketWrap').classList.remove('open');
+document.getElementById('ticketWrap').addEventListener('click', e => { if (e.target.id === 'ticketWrap') closeTicket(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeTicket(); });
+
+/* ================= audio: a groove per record, generated ================= */
+const audio = (() => {
+  let ctx, master, timer, nodes = [], crackle;
+  const ensure = () => { if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = .5; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200; master.connect(lp).connect(ctx.destination); } if (ctx.state === 'suspended') ctx.resume(); };
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const env = (g, t, a, d, s, r, dur) => { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + a); g.gain.linearRampToValueAtTime(s, t + a + d); g.gain.setValueAtTime(s, t + dur); g.gain.linearRampToValueAtTime(0, t + dur + r); };
+  const note = (type, midi, t, dur, vol, fc) => { const o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter(); o.type = type; o.frequency.value = mtof(midi); f.type = 'lowpass'; f.frequency.value = fc; env(g, t, .01, .08, .6, .15, dur); g.gain.value = 0; o.connect(f).connect(g).connect(master); const vg = ctx.createGain(); vg.gain.value = vol; g.disconnect(); g.connect(vg).connect(master); o.start(t); o.stop(t + dur + .3); };
+  const kick = (t) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + .12); g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.001, t + .3); o.connect(g).connect(master); o.start(t); o.stop(t + .32); };
+  const hat = (t, vol) => { const b = ctx.createBuffer(1, 2205, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); const s = ctx.createBufferSource(); s.buffer = b; const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000; const g = ctx.createGain(); g.gain.value = vol; s.connect(f).connect(g).connect(master); s.start(t); };
+  const startCrackle = () => { const n = ctx.sampleRate * 2, b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() < .0015 ? (Math.random() * 2 - 1) * .8 : (Math.random() * 2 - 1) * .015; const s = ctx.createBufferSource(); s.buffer = b; s.loop = true; const g = ctx.createGain(); g.gain.value = .35; s.connect(g).connect(master); s.start(); crackle = s; };
+  return {
+    play(r) {
+      ensure(); this.stop(); startCrackle();
+      const beat = 60 / r.bpm; let bar = 0, next = ctx.currentTime + .1;
+      const R = rng(r.bpm);
+      const schedule = () => {
+        while (next < ctx.currentTime + .6) {
+          const ch = r.chords[bar % r.chords.length];
+          for (let s = 0; s < 4; s++) { const t = next + s * beat; kick(t); if (r.bpm > 100 || s % 2) hat(t + beat / 2, .12); if (s % 2 === 0) hat(t, .06);
+            note('sawtooth', r.root + ch[0] - 12, t, beat * .6, .35, 400);
+            if (s === 0 || s === 2) ch.forEach(d => note('triangle', r.root + 12 + d, t, beat * 1.8, .12, 1800));
+            if (R() < .7) note('sine', r.root + 24 + r.mode[(R() * r.mode.length) | 0] + (R() < .3 ? 12 : 0), t + beat * (R() < .5 ? 0 : .5), beat * .5, .16, 3000); }
+          next += beat * 4; bar++;
+        }
+        timer = setTimeout(schedule, 150);
+      };
+      schedule();
+    },
+    stop() { clearTimeout(timer); if (crackle) { try { crackle.stop(); } catch {} crackle = null; } },
+    level() { return ctx && ctx.state === 'running' ? 1 : 0; }
+  };
+})();
+// a cheap VU: bars wiggle while playing
+const eq = [...document.querySelectorAll('#eq i')];
+setInterval(() => { eq.forEach((b, i) => b.style.height = state.playing ? (4 + Math.random() * 14) + 'px' : '4px'); }, 110);
+
+/* ================= 3D: turntable, record, pizza ================= */
+const scene3d = (() => {
+  const canvas = document.getElementById('gl');
+  let renderer; try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { return { setPie() {}, setRecord() {}, drop() {}, lift() {} }; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const scene = new THREE.Scene(); scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .5;
+  scene.fog = new THREE.Fog(0x0f0d0c, 9, 18);
+  const camera = new THREE.PerspectiveCamera(32, 1, .1, 60);
+  scene.add(new THREE.HemisphereLight(0xffe6cc, 0x0a0806, .45));
+  const key = new THREE.DirectionalLight(0xfff0dd, 2.2); key.position.set(3, 7, 3); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 20 }); key.shadow.bias = -.0004; scene.add(key);
+  const warm = new THREE.PointLight(0xe3b04b, 14, 12, 2); warm.position.set(-3, 2.5, 2); scene.add(warm);
+  const rim = new THREE.DirectionalLight(0xe63b2e, .8); rim.position.set(-4, 2, -4); scene.add(rim);
+
+  /* ---- procedural textures (shared with the pizza builder) ---- */
+  const R = rng(7);
+  const canvasTex = (w, h, draw, srgb = true) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+  const blob = (g, x, y, r, stops) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); stops.forEach(([o, c]) => gr.addColorStop(o, c)); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); };
+  const specks = (g, w, h, n, color, rMax) => { for (let i = 0; i < n; i++) { g.fillStyle = color(); g.beginPath(); g.arc(R() * w, R() * h, R() * rMax, 0, 7); g.fill(); } };
+  const woodTex = canvasTex(1024, 1024, (g, w, h) => { g.fillStyle = '#3a241a'; g.fillRect(0, 0, w, h); for (let i = 0; i < 900; i++) { const y = R() * h; g.strokeStyle = `rgba(${R() < .5 ? '20,10,5' : '120,80,50'},${.05 + R() * .12})`; g.lineWidth = .6 + R() * 2; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= w; x += 32) g.lineTo(x, y + Math.sin(x * .004 + i) * 3); g.stroke(); } });
+  const vinylTex = canvasTex(1024, 1024, (g, w, h) => {
+    g.fillStyle = '#0a0a0a'; g.fillRect(0, 0, w, h);
+    for (let r = 160; r < 505; r += 2.2) { g.strokeStyle = `rgba(255,255,255,${.025 + .035 * Math.abs(Math.sin(r * .08))})`; g.lineWidth = 1; g.beginPath(); g.arc(512, 512, r, 0, 7); g.stroke(); }
+    for (let k = 0; k < 4; k++) { const r = 200 + k * 75; g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 5; g.beginPath(); g.arc(512, 512, r, 0, 7); g.stroke(); }
+  });
+  const vinylRough = canvasTex(1024, 1024, (g, w, h) => { g.fillStyle = 'rgb(70,70,70)'; g.fillRect(0, 0, w, h); for (let r = 160; r < 505; r += 2.2) { g.strokeStyle = `rgba(160,160,160,${.3 + .3 * Math.abs(Math.sin(r * .08))})`; g.lineWidth = 1; g.beginPath(); g.arc(512, 512, r, 0, 7); g.stroke(); } }, false);
+  const doughRawTex = canvasTex(1024, 512, (g, w, h) => { g.fillStyle = '#efdcb9'; g.fillRect(0, 0, w, h); specks(g, w, h, 5000, () => R() < .6 ? `rgba(255,252,244,${R() * .5})` : `rgba(176,124,70,${R() * .14})`, 2.2); });
+  const doughBakedTex = canvasTex(1024, 512, (g, w, h) => { g.fillStyle = '#e2b56e'; g.fillRect(0, 0, w, h); for (let i = 0; i < 140; i++) blob(g, R() * w, R() * h, 16 + R() * 60, [[0, `rgba(176,104,40,${.25 + R() * .3})`], [1, 'rgba(176,104,40,0)']]); for (let i = 0; i < 90; i++) blob(g, R() * w, R() * h, 8 + R() * 36, [[0, 'rgba(250,234,200,.45)'], [1, 'rgba(250,234,200,0)']]); specks(g, w, h, 3500, () => `rgba(120,66,26,${R() * .3})`, 1.6); });
+  const rimCharTex = canvasTex(2048, 256, (g, w, h) => { for (let i = 0; i < 70; i++) blob(g, R() * w, h * (.55 + R() * .4), 26 + R() * 60, [[0, 'rgba(150,82,30,.38)'], [1, 'rgba(150,82,30,0)']]); for (let i = 0; i < 230; i++) { const r = 3 + R() * 11, a = .8 + R() * .2; blob(g, R() * w, h * (.55 + R() * .4), r, [[0, `rgba(16,6,2,${a})`], [.45, `rgba(58,24,8,${a * .75})`], [.8, 'rgba(130,70,26,.22)'], [1, 'rgba(130,70,26,0)']]); } }); rimCharTex.wrapS = THREE.RepeatWrapping;
+  const cheeseFreshTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#f7efdd'; g.fillRect(0, 0, w, h); specks(g, w, h, 1800, () => R() < .5 ? 'rgba(255,255,255,.35)' : 'rgba(222,200,168,.14)', 2.5); });
+  const cheeseSpots = Array.from({ length: 95 }, () => [R() * 512, R() * 512, 7 + R() * 30]);
+  const cheeseBakedTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#f3e4c4'; g.fillRect(0, 0, w, h); specks(g, w, h, 900, () => 'rgba(230,200,150,.25)', 3); cheeseSpots.forEach(([x, y, r]) => blob(g, x, y, r, [[0, 'rgba(118,58,16,.95)'], [.4, 'rgba(186,118,48,.7)'], [.8, 'rgba(222,178,110,.3)'], [1, 'rgba(222,178,110,0)']])); for (let i = 0; i < 18; i++) blob(g, R() * w, R() * h, 2 + R() * 5, [[0, 'rgba(36,16,5,.95)'], [1, 'rgba(36,16,5,0)']]); });
+  const cheeseRoughTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = 'rgb(150,150,150)'; g.fillRect(0, 0, w, h); cheeseSpots.forEach(([x, y, r]) => blob(g, x, y, r * 1.3, [[0, 'rgba(40,40,40,1)'], [1, 'rgba(40,40,40,0)']])); }, false);
+  const leafTex = canvasTex(256, 384, (g, w, h) => { g.beginPath(); g.moveTo(w / 2, h * .98); g.bezierCurveTo(w * 1.1, h * .72, w * 1.02, h * .1, w / 2, h * .02); g.bezierCurveTo(-w * .02, h * .1, -w * .1, h * .72, w / 2, h * .98); g.closePath(); const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#1f5c22'); gr.addColorStop(.5, '#3e9638'); gr.addColorStop(1, '#1f5c22'); g.fillStyle = gr; g.fill(); g.save(); g.clip(); g.strokeStyle = 'rgba(190,232,150,.6)'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(w / 2, h * .97); g.lineTo(w / 2, h * .05); g.stroke(); g.restore(); });
+  const salamiTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#9b2b23'; g.fillRect(0, 0, w, h); for (let i = 0; i < 46; i++) { g.fillStyle = `rgba(246,216,200,${.8 + R() * .2})`; g.beginPath(); g.ellipse(R() * w, R() * h, 3 + R() * 7, 2.5 + R() * 5, R() * 3, 0, 7); g.fill(); } g.strokeStyle = '#5e140f'; g.lineWidth = 14; g.beginPath(); g.arc(w / 2, h / 2, 120, 0, 7); g.stroke(); });
+  const porciniTex = canvasTex(256, 256, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = '#e6d2aa'; g.beginPath(); g.roundRect(96, 120, 64, 124, 22); g.fill(); g.fillStyle = '#7a4a24'; g.beginPath(); g.ellipse(128, 96, 112, 64, 0, Math.PI, 2 * Math.PI); g.lineTo(240, 118); g.ellipse(128, 118, 112, 18, 0, 0, Math.PI); g.closePath(); g.fill(); g.fillStyle = '#c9a66a'; g.beginPath(); g.ellipse(128, 118, 108, 14, 0, 0, Math.PI); g.fill(); });
+
+  const bakeable = (mat, bakedTex, withRough = false) => {
+    mat.userData.uBake = { value: 1 };
+    mat.onBeforeCompile = sh => { sh.uniforms.uBake = mat.userData.uBake; sh.uniforms.map2 = { value: bakedTex };
+      sh.fragmentShader = sh.fragmentShader.replace('uniform float opacity;', 'uniform float opacity; uniform float uBake; uniform sampler2D map2;')
+        .replace('#include <map_fragment>', `#ifdef USE_MAP
+          vec4 sampledDiffuseColor = mix(texture2D(map, vMapUv), texture2D(map2, vMapUv), uBake); diffuseColor *= sampledDiffuseColor;
+        #endif`);
+      if (withRough) sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', `float roughnessFactor = roughness;
+        #ifdef USE_ROUGHNESSMAP
+          roughnessFactor *= mix(1.0, texture2D(roughnessMap, vRoughnessMapUv).g, uBake);
+        #endif`); };
+    mat.customProgramCacheKey = () => 'bake' + withRough; return mat;
+  };
+  const DSX = 1.6, DSY = .065, surfaceY = r => DSY * (1 + Math.sqrt(Math.max(0, 1 - (r / DSX) ** 2)));
+  const rimGeo = new THREE.TorusGeometry(1.48, .19, 40, 180); rimGeo.rotateX(-Math.PI / 2);
+  { const p = rimGeo.attributes.position, v = new THREE.Vector3(), c = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const a = Math.atan2(v.z, v.x); c.set(Math.cos(a) * 1.48, 0, Math.sin(a) * 1.48); const k = 1 + .08 * Math.sin(a * 5 + 1) + .05 * Math.sin(a * 11 + 2); v.sub(c).multiplyScalar(k).add(c); p.setXYZ(i, v.x, v.y, v.z); } rimGeo.computeVertexNormals(); }
+  const sauceGeo = new THREE.RingGeometry(.001, 1.38, 160, 40); sauceGeo.rotateX(-Math.PI / 2);
+  { const p = sauceGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); p.setY(i, surfaceY(Math.hypot(x, z)) + .004); } }
+  const leafGeo = new THREE.PlaneGeometry(.3, .44, 10, 14); { const p = leafGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, 3.4 * x * x - .55 * y * y + .03); } } leafGeo.rotateX(-Math.PI / 2); leafGeo.computeVertexNormals();
+  const cheeseGeo = seed => { const g = new THREE.SphereGeometry(.2, 48, 32), p = g.attributes.position, v = new THREE.Vector3(); for (let j = 0; j < p.count; j++) { v.fromBufferAttribute(p, j); const a = Math.atan2(v.z, v.x); v.multiplyScalar(1 + .09 * Math.sin(a * 3 + seed) + .05 * Math.sin(a * 5 + seed * 2)); p.setXYZ(j, v.x, v.y, v.z); } g.computeVertexNormals(); return g; };
+  const sauceMat = () => new THREE.ShaderMaterial({ transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+    vertexShader: `varying vec2 vXZ; void main(){ vXZ = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+    fragmentShader: `varying vec2 vXZ; float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+      float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x), mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x), u.y); }
+      float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<4;i++){ v+=a*noise(p); p*=2.03; a*=.5; } return v; }
+      void main(){ float r = length(vXZ)/1.38; float edge = 1. - smoothstep(.92, .99, r + (fbm(vXZ*3.5)-.5)*.1); if(edge < .01) discard;
+        mat2 rot = mat2(.8,-.6,.6,.8); float n = fbm(rot*vXZ*4.5); vec3 base = vec3(.36,.03,.015); vec3 col = mix(base*.7, base*1.3, n);
+        col = mix(col, col*vec3(.86,.68,.56) + vec3(.05,.012,0.), .6); gl_FragColor = vec4(col, edge);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment> }` });
+  const scatter = (R, n, rMin, rMax, minD, avoid = []) => { const out = []; for (let t = 0; out.length < n && t < 6000; t++) { const r = rMin + Math.sqrt(R()) * (rMax - rMin), a = R() * 6.283, x = Math.cos(a) * r, z = Math.sin(a) * r; if (avoid.every(s => Math.hypot(s.x - x, s.z - z) > s.d) && out.every(s => Math.hypot(s.x - x, s.z - z) > minD)) out.push({ x, z, r, d: minD }); } return out; };
+  const TOP = {
+    salami: R => { const m = new THREE.Mesh(new THREE.CylinderGeometry(.17, .17, .022, 28), new THREE.MeshStandardMaterial({ map: salamiTex, roughness: .55 })); m.rotation.set((R() - .5) * .3, R() * 6.28, (R() - .5) * .3); m.position.y = .03; return m; },
+    porcini: R => { const m = new THREE.Mesh(new THREE.PlaneGeometry(.34, .34), new THREE.MeshStandardMaterial({ map: porciniTex, alphaTest: .5, side: THREE.DoubleSide, roughness: .7 })); m.rotation.set(-Math.PI / 2 + (R() - .5) * .5, 0, R() * 6.28); m.position.y = .03; return m; },
+    chili: R => { const m = new THREE.Mesh(new THREE.BoxGeometry(.035, .008, .025), new THREE.MeshStandardMaterial({ color: 0xd8441a })); m.rotation.y = R() * 6.28; m.position.y = .01; return m; },
+    herb: R => { const m = new THREE.Mesh(new THREE.BoxGeometry(.02, .006, .016), new THREE.MeshStandardMaterial({ color: 0x3f5a2a })); m.rotation.y = R() * 6.28; m.position.y = .01; return m; },
+    pepper: R => { const m = new THREE.Mesh(new THREE.SphereGeometry(.009, 6, 4), new THREE.MeshStandardMaterial({ color: 0x1b120e })); m.position.y = .012; return m; },
+  };
+  function buildPizza(spec, seed) {
+    const PR = rng(seed), pie = new THREE.Group();
+    const doughMat = bakeable(new THREE.MeshStandardMaterial({ map: doughRawTex, bumpMap: doughRawTex, bumpScale: .5, roughness: .9 }), doughBakedTex);
+    const dough = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), doughMat); dough.scale.set(DSX, DSY, DSX); dough.position.y = DSY; dough.castShadow = dough.receiveShadow = true; pie.add(dough);
+    const rim = new THREE.Mesh(rimGeo, doughMat); rim.castShadow = true; rim.position.y = .11; pie.add(rim);
+    rim.add(new THREE.Mesh(rimGeo, new THREE.MeshStandardMaterial({ map: rimCharTex, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })));
+    if (spec.sauce) { const s = new THREE.Mesh(sauceGeo, sauceMat()); s.receiveShadow = true; pie.add(s); }
+    const avoid = [];
+    const cheeseMat = bakeable(new THREE.MeshPhysicalMaterial({ map: cheeseFreshTex, roughnessMap: cheeseRoughTex, roughness: .55, clearcoat: .5, clearcoatRoughness: .25, color: new THREE.Color(spec.cheeseTint || 0xffffff).multiply(new THREE.Color(0xf6e6c0)) }), cheeseBakedTex, true);
+    (spec.cheese ? scatter(PR, spec.cheese, 0, spec.sauce ? 1.05 : 1.15, .48) : []).forEach(s => { avoid.push({ ...s, d: .4 }); const m = new THREE.Mesh(cheeseGeo(PR() * 100), cheeseMat); m.castShadow = m.receiveShadow = true; const sy = .23; m.scale.set((.85 + PR() * .5) * 1.25, sy, (.85 + PR() * .4) * 1.25); m.position.set(s.x, surfaceY(s.r) + .21 * sy * .72, s.z); m.rotation.y = PR() * 6.28; pie.add(m); });
+    const lm = new THREE.MeshPhysicalMaterial({ map: leafTex, alphaTest: .5, side: THREE.DoubleSide, roughness: .4, clearcoat: .35, color: 0xb8bd9a });
+    (spec.basil ? scatter(PR, spec.basil, .2, 1.1, .5, avoid) : []).forEach(s => { const m = new THREE.Mesh(leafGeo, lm); m.castShadow = true; m.scale.setScalar(1.15); m.position.set(s.x, surfaceY(s.r) + .012, s.z); m.rotation.y = PR() * 6.28; pie.add(m); });
+    (spec.top || []).forEach(([type, n, rMax = 1.15]) => scatter(PR, n, .05, rMax, type === 'salami' || type === 'porcini' ? .3 : .06, type === 'salami' || type === 'porcini' ? avoid : []).forEach(s => { const m = TOP[type](PR); const h = m.position.y; m.position.set(s.x, surfaceY(s.r) + h, s.z); pie.add(m); }));
+    if (spec.oil) { const pts = []; const a0 = PR() * 6.28; for (let i = 0; i <= 60; i++) { const t = i / 60, r = .15 + t * 1.15, a = a0 + t * 1.6 * 6.28; pts.push(new THREE.Vector3(Math.cos(a) * r, surfaceY(r) + .05, Math.sin(a) * r)); } const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 240, .011, 8, false), new THREE.MeshPhysicalMaterial({ color: 0xd4c04c, roughness: .08, transparent: true, opacity: .55, clearcoat: 1, depthWrite: false })); pie.add(m); }
+    return pie;
+  }
+
+  /* ---- the turntable ---- */
+  const table = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: woodTex, roughness: .8 })); table.rotation.x = -Math.PI / 2; table.position.y = -.42; table.receiveShadow = true; scene.add(table);
+  const plinth = new THREE.Mesh(new THREE.BoxGeometry(5.2, .42, 4.0), new THREE.MeshPhysicalMaterial({ color: 0x1b1816, roughness: .35, clearcoat: .6, clearcoatRoughness: .2 })); plinth.position.y = -.21; plinth.castShadow = plinth.receiveShadow = true; scene.add(plinth);
+  const platterMat = new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: .9 });
+  const platter = new THREE.Mesh(new THREE.CylinderGeometry(1.72, 1.72, .12, 96), platterMat); platter.position.set(-.5, .06, 0); platter.castShadow = platter.receiveShadow = true; scene.add(platter);
+  const platterRim = new THREE.Mesh(new THREE.TorusGeometry(1.72, .03, 12, 96), new THREE.MeshStandardMaterial({ color: 0xbfb8ad, metalness: 1, roughness: .35 })); platterRim.rotation.x = Math.PI / 2; platterRim.position.set(-.5, .12, 0); scene.add(platterRim);
+  const spindle = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .5, 16), new THREE.MeshStandardMaterial({ color: 0xd0cbc2, metalness: 1, roughness: .3 })); spindle.position.set(-.5, .3, 0); scene.add(spindle);
+  const spin = new THREE.Group(); spin.position.set(-.5, .12, 0); scene.add(spin);   // everything on the platter rotates with it
+  const vinyl = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, .02, 128), new THREE.MeshPhysicalMaterial({ map: vinylTex, roughnessMap: vinylRough, roughness: 1, clearcoat: 1, clearcoatRoughness: .25, color: 0xffffff })); vinyl.position.y = .01; vinyl.castShadow = vinyl.receiveShadow = true; spin.add(vinyl);
+  const labelMat = new THREE.MeshStandardMaterial({ color: 0xe3b04b, roughness: .8 }); const label = new THREE.Mesh(new THREE.CylinderGeometry(.52, .52, .022, 64), labelMat); label.position.y = .011; spin.add(label);
+  // tonearm: pivot at the back-right, arm swings over the platter, lifts on a hinge
+  const arm = new THREE.Group(); arm.position.set(1.75, .22, -1.35); scene.add(arm);
+  const chrome = new THREE.MeshStandardMaterial({ color: 0xd9d4ca, metalness: 1, roughness: .28 });
+  { const base = new THREE.Mesh(new THREE.CylinderGeometry(.22, .26, .3, 32), chrome); base.position.set(0, -.05, 0); base.castShadow = true; arm.add(base); }
+  const hinge = new THREE.Group(); hinge.position.y = .12; arm.add(hinge);
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(.035, .03, 3.0, 16), chrome); tube.rotation.z = Math.PI / 2; tube.position.x = -1.5; tube.castShadow = true; hinge.add(tube);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(.3, .09, .14), new THREE.MeshStandardMaterial({ color: 0x1a1816, roughness: .5 })); head.position.set(-3.05, -.03, 0); head.castShadow = true; hinge.add(head);
+  const counter = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, .2, 24), chrome); counter.rotation.z = Math.PI / 2; counter.position.x = .32; hinge.add(counter);
+  const ARM_REST = -.58, ARM_PLAY = -1.03; arm.rotation.y = ARM_REST; let armTarget = ARM_REST, liftTarget = .06, lift = .06;
+  // headphones on a hook at the back-left
+  { const hp = new THREE.Group(); const band = new THREE.Mesh(new THREE.TorusGeometry(.42, .035, 12, 48, Math.PI), new THREE.MeshStandardMaterial({ color: 0x1a1816, roughness: .5 })); hp.add(band);
+    for (const s of [-1, 1]) { const cup = new THREE.Mesh(new THREE.CylinderGeometry(.19, .19, .12, 32), new THREE.MeshPhysicalMaterial({ color: 0x1a1816, roughness: .35, clearcoat: .6 })); cup.rotation.z = Math.PI / 2; cup.position.set(s * .42, -.02, 0); hp.add(cup); const pad = new THREE.Mesh(new THREE.TorusGeometry(.14, .05, 12, 32), new THREE.MeshStandardMaterial({ color: 0x5a4a3a, roughness: .9 })); pad.rotation.y = Math.PI / 2; pad.position.set(s * .5, -.02, 0); hp.add(pad); }
+    hp.position.set(-3.6, 1.1, -.4); hp.rotation.set(.2, .5, 0); hp.scale.setScalar(1.1); hp.traverse(o => { if (o.isMesh) o.castShadow = true; }); scene.add(hp);
+    const hook = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, 2.2, 10), chrome); hook.position.set(-3.6, .4, -.4); scene.add(hook); }
+  // sleeve leaning against the plinth, textured when a record is picked
+  const sleeveMat = new THREE.MeshStandardMaterial({ color: 0x3a3330, roughness: .85 });
+  const sleeve = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.6, .06), sleeveMat); sleeve.position.set(3.1, 1.0, -.6); sleeve.rotation.set(-.12, -.55, 0); sleeve.castShadow = true; sleeve.visible = false; scene.add(sleeve);
+
+  /* ---- pizza slot ---- */
+  let pizza = null, pizzaY = 6, pizzaTargetY = 6, pizzaKey = null;
+  const setPie = k => { if (pizza) spin.remove(pizza); pizzaKey = k; pizza = buildPizza(PIES[k].spec, { margherita: 3, diavola: 14, funghi: 47 }[k]); pizza.scale.setScalar(.92); pizzaY = 5; pizzaTargetY = .04; spin.add(pizza); };
+  const setRecord = i => { const r = RECORDS[i]; const t = new THREE.CanvasTexture(sleeveCanvas(r)); t.colorSpace = THREE.SRGBColorSpace; sleeveMat.map = t; sleeveMat.color.set(0xffffff); sleeveMat.needsUpdate = true; sleeve.visible = true; sleeve.position.y = 1.6; labelMat.color.set(r.pal[2]); };
+  const drop = () => { armTarget = ARM_PLAY; liftTarget = 0; };
+  const lift2 = () => { armTarget = ARM_REST; liftTarget = .06; };
+
+  /* ---- camera + loop ---- */
+  const look = new THREE.Vector3(-.3, .25, 0); let wide = true;
+  const resize = () => { const w = innerWidth, h = innerHeight; wide = w > 960; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); };
+  addEventListener('resize', resize); resize();
+  const mouse = { x: 0, y: 0, sx: 0, sy: 0 }; addEventListener('pointermove', e => { mouse.x = e.clientX / innerWidth - .5; mouse.y = e.clientY / innerHeight - .5; });
+  let rpm = 0, angle = 0, last = performance.now();
+  const rpmEl = document.querySelector('#rpm b');
+  const frame = now => {
+    requestAnimationFrame(frame);
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const targetRpm = state.playing ? 33.333 : (state.rec !== null || state.pie ? 8 : 3);
+    rpm = lerp(rpm, targetRpm, dt * 1.5); angle += rpm / 60 * 6.283 * dt; spin.rotation.y = angle; rpmEl.textContent = rpm.toFixed(1);
+    arm.rotation.y = lerp(arm.rotation.y, armTarget, dt * 2.5); lift = lerp(lift, liftTarget, dt * 3); hinge.rotation.z = -lift;
+    if (pizza) { pizzaY = lerp(pizzaY, pizzaTargetY, dt * 3.5); pizza.position.y = pizzaY + (pizzaY > .1 ? 0 : Math.sin(angle * 2) * .003); }
+    sleeve.position.y = lerp(sleeve.position.y, 1.0, dt * 4);
+    // camera: scroll pulls up and over; cursor adds parallax
+    const p = clamp(scrollY / innerHeight);
+    mouse.sx = lerp(mouse.sx, mouse.x, .05); mouse.sy = lerp(mouse.sy, mouse.y, .05);
+    const base = wide ? new THREE.Vector3(lerp(5.2, 3.4, p), lerp(4.0, 9.8, p), lerp(7.8, 8.6, p)) : new THREE.Vector3(lerp(3.2, 1.6, p), lerp(6.0, 11.0, p), lerp(9.0, 8.0, p));
+    camera.position.set(base.x + mouse.sx * .8, base.y - mouse.sy * .5, base.z);
+    if (wide) camera.setViewOffset(innerWidth, innerHeight, -innerWidth * (.1 + p * .1), innerHeight * p * .06, innerWidth, innerHeight); else camera.setViewOffset(innerWidth, innerHeight, 0, innerHeight * (.08 - p * .3), innerWidth, innerHeight);
+    camera.lookAt(look); renderer.render(scene, camera);
+  };
+  requestAnimationFrame(frame);
+  return { setPie, setRecord, drop, lift: lift2 };
+})();
+window.lp = { pickPie, pickRecord, state, scene3d, audio };
+</script>
+</body>
+</html>
