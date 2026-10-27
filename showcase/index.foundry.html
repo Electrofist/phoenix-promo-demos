@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en" data-theme="ink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiln · variable type, cast live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Roboto+Flex:opsz,slnt,wdth,wght,GRAD@8..144,-10..0,25..151,100..1000,-200..150&family=Recursive:slnt,wght,CASL,CRSV,MONO@-15..0,300..1000,0..1,0..1,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fraunces: 'Fraunces', Georgia, serif;
+    --flex: 'Roboto Flex', system-ui, sans-serif;
+    --mono: 'Recursive', ui-monospace, monospace;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+  }
+  [data-theme="ink"]   { --bg: #0f0e0c; --ink: #f4efe4; --accent: #ff5a1f; --line: rgba(244,239,228,.14); --soft: rgba(244,239,228,.06); color-scheme: dark; }
+  [data-theme="paper"] { --bg: #f2ede2; --ink: #16130f; --accent: #1f4fe0; --line: rgba(22,19,15,.14); --soft: rgba(22,19,15,.05); color-scheme: light; }
+  [data-theme="acid"]  { --bg: #d9ff38; --ink: #111111; --accent: #5b21b6; --line: rgba(17,17,17,.18); --soft: rgba(17,17,17,.06); color-scheme: light; }
+  [data-theme="rose"]  { --bg: #f6d2d6; --ink: #3a0912; --accent: #d7261d; --line: rgba(58,9,18,.16); --soft: rgba(58,9,18,.05); color-scheme: light; }
+
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--flex); font-variation-settings: "wght" 420, "wdth" 100, "opsz" 14; font-size: 17px; line-height: 1.5; -webkit-font-smoothing: antialiased; transition: background .6s var(--ease), color .6s var(--ease); overflow-x: hidden; }
+  ::selection { background: var(--accent); color: var(--bg); }
+  a { color: inherit; }
+  .mono { font-family: var(--mono); font-variation-settings: "MONO" 1, "CASL" 0, "wght" 450, "slnt" 0; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+
+  /* top bar */
+  .top { position: fixed; inset: 0 0 auto 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px clamp(16px, 3vw, 40px); background: var(--bg); border-bottom: 1px solid var(--line); transition: background .6s var(--ease); }
+  .top .right { display: flex; align-items: center; gap: 22px; }
+  .wordmark { font-family: var(--fraunces); font-variation-settings: "opsz" 144, "wght" 700, "SOFT" 100, "WONK" 1; font-size: 30px; letter-spacing: -.04em; text-decoration: none; line-height: 1; }
+  .top nav { display: flex; gap: 26px; }
+  .top nav a { text-decoration: none; }
+  .top nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
+
+  .themes { display: flex; gap: 6px; padding: 5px; background: var(--ink); border-radius: 99px; }
+  .themes button { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; transition: transform .25s var(--ease); }
+  .themes button:hover { transform: scale(1.12); }
+  .themes button[aria-pressed="true"] { border-color: var(--bg); }
+
+  /* hero */
+  .hero { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; padding: 0 clamp(16px, 3vw, 40px) 0; position: relative; overflow: hidden; }
+  .hero-word { align-self: center; margin-top: 4vh; display: flex; justify-content: center; font-family: var(--fraunces); font-size: var(--hero-size, 26vw); line-height: .86; letter-spacing: -.045em; user-select: none; cursor: crosshair; white-space: nowrap; }
+  .hero-word span { display: inline-block; font-variation-settings: "opsz" 144, "wght" 300, "SOFT" 0, "WONK" 1; will-change: font-variation-settings, transform; transition: color .6s var(--ease); }
+  .hero-word span.lit { color: var(--accent); }
+  .hero-meta { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 24px; padding: 0 0 26px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .hero-meta p { max-width: 360px; font-variation-settings: "wght" 400, "wdth" 100; }
+  .hero-meta p b { font-variation-settings: "wght" 700; }
+  .typebox { display: flex; align-items: center; gap: 10px; justify-self: end; }
+  .typebox input { font: inherit; font-family: var(--fraunces); font-variation-settings: "opsz" 24, "wght" 500; font-size: 20px; background: transparent; border: 0; border-bottom: 1px solid var(--ink); color: var(--ink); padding: 6px 0; width: 180px; outline: none; }
+  .typebox input:focus { border-bottom-color: var(--accent); }
+  .hint { text-align: center; opacity: .7; }
+
+  /* marquee */
+  .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; white-space: nowrap; padding: 10px 0; }
+  .marquee .track { display: inline-flex; gap: 0; font-family: var(--flex); font-size: clamp(44px, 7vw, 110px); line-height: 1; letter-spacing: -.02em; animation: run 38s linear infinite; }
+  .marquee .track span { display: inline-block; font-variation-settings: "wght" 700, "wdth" 100, "opsz" 144; padding: 0 .06em; }
+  @keyframes run { to { transform: translateX(-50%); } }
+
+  /* sections */
+  section.block { padding: clamp(80px, 12vh, 150px) clamp(16px, 3vw, 40px); border-bottom: 1px solid var(--line); }
+  .head { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; margin-bottom: 44px; }
+  .head h2 { font-family: var(--fraunces); font-variation-settings: "opsz" 144, "wght" 500, "SOFT" 60, "WONK" 1; font-size: clamp(40px, 6vw, 88px); line-height: .95; letter-spacing: -.03em; }
+  .head h2 em { font-style: italic; color: var(--accent); }
+
+  /* playground */
+  .play { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: clamp(24px, 4vw, 64px); align-items: start; }
+  .sample { min-height: 50vh; font-size: clamp(40px, 8vw, 140px); line-height: .98; letter-spacing: -.02em; outline: none; word-wrap: break-word; overflow-wrap: anywhere; transition: font-variation-settings .12s linear; }
+  .sample:focus { box-shadow: inset 0 0 0 1px var(--line); }
+  .panel { position: sticky; top: 90px; border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: var(--soft); backdrop-filter: blur(10px); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 18px; }
+  .tabs button { flex: 1; font: inherit; font-size: 13px; padding: 8px 6px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-variation-settings: "wght" 500; }
+  .tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .axis { margin-bottom: 14px; }
+  .axis label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .axis input[type=range] { width: 100%; accent-color: var(--accent); }
+  .row { display: flex; gap: 8px; margin-top: 14px; }
+  .btn { font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; font-variation-settings: "wght" 600; }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn:hover { border-color: var(--accent); }
+  pre.code { margin-top: 14px; font-family: var(--mono); font-variation-settings: "MONO" 1, "CASL" .4, "wght" 420; font-size: 12px; line-height: 1.5; white-space: pre-wrap; color: var(--ink); opacity: .85; border-top: 1px solid var(--line); padding-top: 12px; }
+
+  /* specimens */
+  .specimens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .spec { border: 1px solid var(--line); border-radius: 18px; padding: 24px; min-height: 420px; display: flex; flex-direction: column; gap: 18px; transition: background .4s var(--ease), transform .5s var(--ease); background: transparent; }
+  .spec:hover { background: var(--soft); transform: translateY(-4px); }
+  .spec .big { font-size: clamp(64px, 7vw, 120px); line-height: .9; letter-spacing: -.03em; flex: 1; display: flex; align-items: center; }
+  .spec .meta { display: flex; justify-content: space-between; }
+  .spec .wf { font-size: 22px; line-height: 1.25; }
+  .spec[data-f="fraunces"] .big, .spec[data-f="fraunces"] .wf { font-family: var(--fraunces); }
+  .spec[data-f="flex"] .big, .spec[data-f="flex"] .wf { font-family: var(--flex); }
+  .spec[data-f="recursive"] .big, .spec[data-f="recursive"] .wf { font-family: var(--mono); }
+
+  /* waterfall */
+  .falls { font-family: var(--flex); letter-spacing: -.03em; line-height: 1; }
+  .falls div { font-size: clamp(34px, 6vw, 96px); white-space: nowrap; overflow: hidden; opacity: 0; transform: translateY(20px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  .falls.in div { opacity: 1; transform: none; }
+
+  /* licence */
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .plan { border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+  .plan h3 { font-family: var(--fraunces); font-variation-settings: "opsz" 48, "wght" 600, "SOFT" 40; font-size: 30px; letter-spacing: -.02em; }
+  .plan .price { font-size: 52px; letter-spacing: -.04em; font-variation-settings: "wght" 700, "wdth" 90; margin: 14px 0 6px; }
+  .plan ul { padding-left: 18px; opacity: .85; margin: 12px 0 18px; }
+
+  footer { padding: 40px clamp(16px, 3vw, 40px) 90px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; opacity: .8; font-size: 14px; }
+
+  @media (max-width: 860px) {
+    .top nav { display: none; }
+    .hero-word { font-size: var(--hero-size, 24vw); }
+    .hero-meta { grid-template-columns: 1fr; }
+    .typebox { justify-self: start; }
+    .hint { text-align: left; }
+    .play { grid-template-columns: 1fr; }
+    .panel { position: static; }
+    .specimens, .plans { grid-template-columns: 1fr; }
+    footer { grid-template-columns: 1fr; }
+    .head { grid-template-columns: 1fr; gap: 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .marquee .track { animation: none; } .falls div { transition: none; opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="wordmark" href="#">Kiln</a>
+  <div class="right">
+    <nav class="mono"><a href="#play">Playground</a><a href="#specimens">Specimens</a><a href="#licence">Licence</a></nav>
+    <div class="themes" id="themes" role="group" aria-label="Palette">
+      <button data-t="ink" style="background:#0f0e0c" aria-label="Ink"></button>
+      <button data-t="paper" style="background:#f2ede2" aria-label="Paper"></button>
+      <button data-t="acid" style="background:#d9ff38" aria-label="Acid"></button>
+      <button data-t="rose" style="background:#f6d2d6" aria-label="Rose"></button>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="hero-word" id="word" aria-label="Kiln"></div>
+  <div class="hero-meta">
+    <p><b>Kiln</b> is a specimen house for variable type. Every letter on this page is live: move your cursor over the word, drag the sliders, change the palette.</p>
+    <div class="hint mono">Move the cursor across the word</div>
+    <div class="typebox"><span class="mono">Try your own</span><input id="wordIn" maxlength="9" value="Kiln" aria-label="Type a word for the poster" autocomplete="off"></div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true"><div class="track" id="track"></div></div>
+
+<section class="block" id="play">
+  <div class="head"><span class="mono">01 / Playground</span><h2>Pull the axes. <em>Watch it bend.</em></h2></div>
+  <div class="play">
+    <div class="sample" id="sample" contenteditable="true" spellcheck="false">Set in hot metal, cast in the browser.</div>
+    <aside class="panel">
+      <div class="tabs" id="tabs"></div>
+      <div id="axes"></div>
+      <div class="row"><button class="btn" id="shuffle">Shuffle</button><button class="btn ghost" id="animate">Animate</button><button class="btn ghost" id="copy">Copy CSS</button></div>
+      <pre class="code" id="code"></pre>
+    </aside>
+  </div>
+</section>
+
+<section class="block" id="specimens">
+  <div class="head"><span class="mono">02 / Specimens</span><h2>Three families, <em>infinite cuts.</em></h2></div>
+  <div class="specimens">
+    <article class="spec" data-f="fraunces">
+      <div class="meta mono"><span>Fraunces</span><span>opsz · wght · SOFT · WONK</span></div>
+      <div class="big">Aa Qg</div>
+      <div class="wf">A soft, wonky serif that goes from a quiet book face to a loud display cut.</div>
+      <div class="meta mono"><span>Undercase</span><span>SIL OFL</span></div>
+    </article>
+    <article class="spec" data-f="flex">
+      <div class="meta mono"><span>Roboto Flex</span><span>wght · wdth · opsz · slnt · GRAD</span></div>
+      <div class="big">Rr Gg</div>
+      <div class="wf">The everything grotesk: 25 to 151 width, hairline to black, twelve axes of play.</div>
+      <div class="meta mono"><span>Font Bureau</span><span>SIL OFL</span></div>
+    </article>
+    <article class="spec" data-f="recursive">
+      <div class="meta mono"><span>Recursive</span><span>MONO · CASL · wght · slnt</span></div>
+      <div class="big">{ } &amp;</div>
+      <div class="wf">Mono to sans, linear to casual, one slider at a time. Built for code and for captions.</div>
+      <div class="meta mono"><span>Arrow Type</span><span>SIL OFL</span></div>
+    </article>
+  </div>
+</section>
+
+<section class="block" id="falls-sec">
+  <div class="head"><span class="mono">03 / Waterfall</span><h2>Hairline to black, <em>one file.</em></h2></div>
+  <div class="falls" id="falls"></div>
+</section>
+
+<section class="block" id="licence">
+  <div class="head"><span class="mono">04 / Licence</span><h2>Open type, <em>no small print.</em></h2></div>
+  <div class="plans">
+    <div class="plan"><h3>Desktop</h3><div class="price">Free</div><ul><li>All three families</li><li>Every axis, every instance</li><li>Print and local use</li></ul><button class="btn">Download</button></div>
+    <div class="plan"><h3>Web</h3><div class="price">Free</div><ul><li>Self-host or Google Fonts</li><li>Unlimited pageviews</li><li>Subset as you like</li></ul><button class="btn">Get the CSS</button></div>
+    <div class="plan"><h3>Custom cut</h3><div class="price">Ask</div><ul><li>A named instance for your brand</li><li>Hinting and kerning pass</li><li>Logo lockups</li></ul><button class="btn ghost">Write to us</button></div>
+  </div>
+</section>
+
+<footer>
+  <div><b>Kiln</b> is a fictional specimen house. The typefaces are real open-source variable fonts: Fraunces (Undercase Type), Roboto Flex (Font Bureau / Google), Recursive (Arrow Type), all under the SIL Open Font License.</div>
+  <div class="mono">Built in Phoenix Code with Claude</div>
+</footer>
+
+<script>
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/* ---------- palette ---------- */
+const themes = document.getElementById('themes');
+function setTheme(t) { document.documentElement.dataset.theme = t; themes.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t)); }
+themes.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTheme(b.dataset.t); });
+setTheme('ink');
+
+/* ---------- hero: letters that follow the cursor ---------- */
+const word = document.getElementById('word'), wordIn = document.getElementById('wordIn');
+let letters = [], mouse = { x: -9999, y: -9999, active: false }, t = 0;
+function buildWord(text) {
+  word.innerHTML = '';
+  letters = [...(text || 'Kiln')].map(ch => { const s = document.createElement('span'); s.textContent = ch === ' ' ? ' ' : ch; s.w = 300; s.soft = 0; word.appendChild(s); return s; });
+  // scale the word to the viewport width
+  const n = Math.max(4, letters.length);
+  document.documentElement.style.setProperty('--hero-size', `${clamp(150 / n, 12, 38)}vw`);
+}
+buildWord('Kiln');
+wordIn.addEventListener('input', () => buildWord(wordIn.value.trim() || 'Kiln'));
+word.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+word.addEventListener('pointerleave', () => mouse.active = false);
+function heroFrame() {
+  t += .016;
+  letters.forEach((s, i) => {
+    let target = 300, soft = 0, lit = false;
+    if (mouse.active) {
+      const r = s.getBoundingClientRect(), d = Math.hypot(mouse.x - (r.left + r.width / 2), mouse.y - (r.top + r.height / 2));
+      const k = clamp(1 - d / (r.width * 1.6), 0, 1);
+      target = 300 + 600 * k; soft = 100 * k; lit = k > .55;
+    } else if (!reduced) {
+      // idle breathing wave so the hero moves even with no cursor
+      const k = (Math.sin(t * 1.4 - i * .9) + 1) / 2;
+      target = 300 + 500 * k; soft = 80 * k;
+    }
+    s.w = lerp(s.w, target, .18); s.soft = lerp(s.soft, soft, .18);
+    s.style.fontVariationSettings = `"opsz" 144, "wght" ${s.w.toFixed(0)}, "SOFT" ${s.soft.toFixed(0)}, "WONK" 1`;
+    s.classList.toggle('lit', lit);
+  });
+  requestAnimationFrame(heroFrame);
+}
+heroFrame();
+
+/* ---------- marquee: a width wave across the alphabet ---------- */
+const track = document.getElementById('track');
+const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&?!';
+track.innerHTML = (alpha + alpha).split('').map(c => `<span>${c}</span>`).join('');
+const mSpans = [...track.children];
+(function marqueeFrame() {
+  const now = performance.now() / 1000;
+  mSpans.forEach((s, i) => { const k = (Math.sin(now * 1.2 + i * .35) + 1) / 2; s.style.fontVariationSettings = `"wght" ${Math.round(200 + 700 * k)}, "wdth" ${Math.round(40 + 111 * (1 - k))}, "opsz" 144`; });
+  if (!reduced) requestAnimationFrame(marqueeFrame);
+})();
+
+/* ---------- playground ---------- */
+const FONTS = {
+  fraunces: { name: 'Fraunces', family: "'Fraunces', serif", axes: [
+    { tag: 'wght', label: 'Weight', min: 100, max: 900, v: 500 }, { tag: 'opsz', label: 'Optical size', min: 9, max: 144, v: 144 },
+    { tag: 'SOFT', label: 'Softness', min: 0, max: 100, v: 30 }, { tag: 'WONK', label: 'Wonky', min: 0, max: 1, step: 1, v: 1 } ] },
+  flex: { name: 'Roboto Flex', family: "'Roboto Flex', sans-serif", axes: [
+    { tag: 'wght', label: 'Weight', min: 100, max: 1000, v: 700 }, { tag: 'wdth', label: 'Width', min: 25, max: 151, v: 100 },
+    { tag: 'opsz', label: 'Optical size', min: 8, max: 144, v: 144 }, { tag: 'slnt', label: 'Slant', min: -10, max: 0, v: 0 }, { tag: 'GRAD', label: 'Grade', min: -200, max: 150, v: 0 } ] },
+  recursive: { name: 'Recursive', family: "'Recursive', monospace", axes: [
+    { tag: 'wght', label: 'Weight', min: 300, max: 1000, v: 600 }, { tag: 'MONO', label: 'Mono', min: 0, max: 1, step: .01, v: 0 },
+    { tag: 'CASL', label: 'Casual', min: 0, max: 1, step: .01, v: .5 }, { tag: 'slnt', label: 'Slant', min: -15, max: 0, v: 0 }, { tag: 'CRSV', label: 'Cursive', min: 0, max: 1, step: 1, v: 1 } ] },
+};
+const sample = document.getElementById('sample'), tabs = document.getElementById('tabs'), axesEl = document.getElementById('axes'), code = document.getElementById('code');
+let cur = 'fraunces', animating = false;
+Object.entries(FONTS).forEach(([k, f]) => { const b = document.createElement('button'); b.textContent = f.name; b.onclick = () => pick(k); b.dataset.k = k; tabs.appendChild(b); });
+function pick(k) {
+  cur = k; tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k));
+  axesEl.innerHTML = '';
+  FONTS[k].axes.forEach(a => {
+    const d = document.createElement('div'); d.className = 'axis';
+    d.innerHTML = `<label class="mono"><span>${a.label} <small style="opacity:.6">${a.tag}</small></span><output>${a.v}</output></label><input type="range" min="${a.min}" max="${a.max}" step="${a.step || 1}" value="${a.v}">`;
+    const r = d.querySelector('input'), o = d.querySelector('output');
+    r.addEventListener('input', () => { a.v = +r.value; o.value = a.v; apply(); });
+    a.el = r; a.out = o; axesEl.appendChild(d);
+  });
+  apply();
+}
+function apply() {
+  const f = FONTS[cur], fvs = f.axes.map(a => `"${a.tag}" ${a.v}`).join(', ');
+  sample.style.fontFamily = f.family; sample.style.fontVariationSettings = fvs;
+  code.textContent = `font-family: ${f.family};\nfont-variation-settings: ${fvs};`;
+  f.axes.forEach(a => { if (a.el) { a.el.value = a.v; a.out.value = a.v; } });
+}
+document.getElementById('shuffle').onclick = () => {
+  FONTS[cur].axes.forEach(a => { const r = a.min + Math.random() * (a.max - a.min); a.v = a.step && a.step < 1 ? +r.toFixed(2) : Math.round(r); });
+  apply();
+  const keys = Object.keys(FONTS); if (Math.random() < .35) { const next = keys[(keys.indexOf(cur) + 1) % keys.length]; pick(next); }
+  if (Math.random() < .5) setTheme(['ink', 'paper', 'acid', 'rose'][Math.random() * 4 | 0]);
+};
+document.getElementById('animate').onclick = function () {
+  animating = !animating; this.textContent = animating ? 'Stop' : 'Animate';
+  if (!animating) return;
+  const t0 = performance.now();
+  (function f(now) { if (!animating) return; const k = (now - t0) / 1000;
+    FONTS[cur].axes.forEach((a, i) => { const s = (Math.sin(k * (.6 + i * .17)) + 1) / 2; const v = a.min + (a.max - a.min) * s; a.v = a.step && a.step < 1 ? +v.toFixed(2) : Math.round(v); });
+    apply(); requestAnimationFrame(f); })(t0);
+};
+document.getElementById('copy').onclick = async function () { try { await navigator.clipboard.writeText(code.textContent); this.textContent = 'Copied'; setTimeout(() => this.textContent = 'Copy CSS', 1200); } catch { this.textContent = 'Select & copy'; } };
+pick('fraunces');
+
+/* ---------- specimens: hover loops the weight ---------- */
+document.querySelectorAll('.spec').forEach(card => {
+  const big = card.querySelector('.big'), f = card.dataset.f;
+  let raf, on = false;
+  const base = { fraunces: k => `"opsz" 144, "wght" ${300 + 600 * k | 0}, "SOFT" ${100 * k | 0}, "WONK" 1`,
+                 flex: k => `"wght" ${200 + 800 * k | 0}, "wdth" ${151 - 100 * k | 0}, "opsz" 144`,
+                 recursive: k => `"wght" ${400 + 600 * k | 0}, "MONO" ${(1 - k).toFixed(2)}, "CASL" ${k.toFixed(2)}, "slnt" 0` }[f];
+  big.style.fontVariationSettings = base(.5);
+  const loop = () => { if (!on) return; const k = (Math.sin(performance.now() / 600) + 1) / 2; big.style.fontVariationSettings = base(k); raf = requestAnimationFrame(loop); };
+  card.addEventListener('pointerenter', () => { on = true; loop(); });
+  card.addEventListener('pointerleave', () => { on = false; cancelAnimationFrame(raf); big.style.fontVariationSettings = base(.5); });
+});
+
+/* ---------- waterfall ---------- */
+const falls = document.getElementById('falls');
+[100, 200, 300, 400, 500, 600, 700, 800, 900, 1000].forEach((w, i) => {
+  const d = document.createElement('div'); d.textContent = `${w} — The quick brown fox jumps over the lazy dog`;
+  d.style.fontVariationSettings = `"wght" ${w}, "wdth" ${100 + (i - 4.5) * 8}, "opsz" 144`; d.style.transitionDelay = `${i * 60}ms`; falls.appendChild(d);
+});
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { falls.classList.add('in'); o.disconnect(); } }, { threshold: .15 }).observe(falls);
+
+window.kiln = { setTheme, pick, word: buildWord, fonts: FONTS };
+</script>
+</body>
+</html>
