@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noa · a tiny world</title>
+<meta name="description" content="Noa is a product designer. This little planet is the portfolio: spin it, click around.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2340;--paper:#fffaf2;--muted:#6f6787;--accent:#ff6b4a;--blue:#4f7cff;--shadow:0 6px 0 rgba(43,35,64,.12)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,#a9dbff 0%,#d9f0ff 42%,#ffe8d4 78%,#ffd2bd 100%);transition:background 1.2s;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+  body.night{background:linear-gradient(180deg,#0b0d2b 0%,#1b1946 45%,#3a2a5e 80%,#5a3366 100%)}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  :focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:12px}
+  .stars{position:fixed;inset:0;opacity:0;transition:opacity 1.2s;pointer-events:none;background-repeat:repeat;background-size:420px 300px;
+    background-image:radial-gradient(1.6px 1.6px at 30px 40px,#fff 60%,transparent 62%),radial-gradient(1.2px 1.2px at 120px 160px,#fff 60%,transparent 62%),radial-gradient(1.8px 1.8px at 260px 80px,#fff 60%,transparent 62%),radial-gradient(1px 1px at 340px 220px,#fff 60%,transparent 62%),radial-gradient(1.4px 1.4px at 190px 260px,#fff 60%,transparent 62%),radial-gradient(1.1px 1.1px at 400px 30px,#fff 60%,transparent 62%),radial-gradient(1.3px 1.3px at 80px 250px,#fff 60%,transparent 62%)}
+  body.night .stars{opacity:.9}
+  #world{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+  #world.drag{cursor:grabbing}
+  #world.hot{cursor:pointer}
+
+  /* ---------- top bar ---------- */
+  .top{position:fixed;inset:16px 16px auto;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
+  .top>*{pointer-events:auto}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:22px;letter-spacing:-.01em;padding:8px 14px 8px 8px;border-radius:999px;background:rgba(255,255,255,.75);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .logo i{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#b7f08f,#5fb84a 60%,#3f8f35);box-shadow:inset -3px -3px 0 rgba(0,0,0,.12);position:relative}
+  .logo i::after{content:"";position:absolute;inset:-4px -7px;border-radius:50%;border:2.5px solid var(--accent);transform:rotate(-20deg) scaleY(.38)}
+  .nav{display:flex;gap:6px;padding:6px;border-radius:999px;background:rgba(255,255,255,.75);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);overflow-x:auto;scrollbar-width:none}
+  .nav button{padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;letter-spacing:.02em;white-space:nowrap;transition:background .25s,color .25s,transform .2s}
+  .nav button:hover{background:rgba(43,35,64,.07)}
+  .nav button.on{background:var(--ink);color:#fff}
+  .toggle{width:64px;height:38px;border-radius:999px;background:rgba(255,255,255,.75);box-shadow:var(--shadow);position:relative;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .toggle::before{content:"☀";position:absolute;top:4px;left:4px;width:30px;height:30px;border-radius:50%;background:#ffd166;display:grid;place-items:center;font-size:16px;transition:transform .45s cubic-bezier(.3,1.5,.5,1),background .4s}
+  body.night .toggle{background:rgba(40,36,80,.85)}
+  body.night .toggle::before{content:"☾";transform:translateX(26px);background:#c9c6ff;color:#2b2340}
+  body.night .logo,body.night .nav{background:rgba(40,36,80,.8);color:#fff}
+  body.night .nav button.on{background:#fff;color:var(--ink)}
+  @media (max-width:760px){.top{flex-wrap:wrap;justify-content:space-between}.nav{order:3;width:100%}.nav button{padding:9px 14px;font-size:14px}}
+
+  /* ---------- section card ---------- */
+  .card{position:fixed;z-index:4;left:clamp(16px,4vw,48px);bottom:clamp(16px,5vh,48px);width:min(420px,calc(100vw - 32px));background:var(--paper);border-radius:30px;padding:26px 28px 24px;box-shadow:0 24px 60px -24px rgba(43,35,64,.5),var(--shadow);transition:opacity .35s,transform .45s cubic-bezier(.3,1.4,.5,1)}
+  .card.out{opacity:0;transform:translateY(16px) scale(.98)}
+  body.night .card{background:#2b2752;color:#fff}
+  .kicker{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .card h1{font-size:clamp(30px,3.4vw,42px);line-height:1.02;font-weight:700;letter-spacing:-.02em;margin:8px 0 12px}
+  .card p{font-size:17px;line-height:1.5;color:var(--muted);font-weight:400}
+  body.night .card p{color:#c9c4e6}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:16px;font-weight:600;font-size:15px;background:var(--ink);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.25);transition:transform .12s,box-shadow .12s;text-decoration:none}
+  .btn:active{transform:translateY(4px);box-shadow:none}
+  .btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 rgba(43,35,64,.18),inset 0 0 0 2px rgba(43,35,64,.12)}
+  .btn.hot{background:var(--accent)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chips span{padding:7px 12px;border-radius:999px;background:rgba(79,124,255,.1);color:var(--blue);font-weight:600;font-size:13.5px}
+  body.night .chips span{background:rgba(201,198,255,.15);color:#c9c6ff}
+  .projects{display:grid;gap:10px;margin-top:16px}
+  .proj{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;padding:10px;border-radius:18px;background:rgba(43,35,64,.05);text-align:left;transition:background .2s,transform .2s}
+  .proj:hover{background:rgba(43,35,64,.09);transform:translateX(4px)}
+  body.night .proj{background:rgba(255,255,255,.06)}
+  .proj i{width:56px;height:56px;border-radius:14px}
+  .proj b{display:block;font-size:16px;font-weight:600}
+  .proj small{display:block;color:var(--muted);font-size:13.5px}
+  body.night .proj small{color:#c9c4e6}
+  .proj em{font-style:normal;font-size:13px;font-weight:600;color:var(--muted)}
+  .pager{position:fixed;z-index:4;right:clamp(16px,4vw,48px);bottom:clamp(16px,5vh,48px);display:flex;gap:10px;align-items:center}
+  .pager button{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:var(--shadow);font-size:22px;font-weight:700}
+  body.night .pager button{background:rgba(40,36,80,.85);color:#fff}
+  .pager span{font-weight:600;font-size:14px;color:var(--muted);min-width:44px;text-align:center}
+  .tip{position:fixed;z-index:6;pointer-events:none;padding:7px 12px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:14px;transform:translate(-50%,-140%);opacity:0;transition:opacity .15s;white-space:nowrap}
+  .tip.on{opacity:1}
+  .hint{position:fixed;z-index:3;left:50%;top:84px;translate:-50% 0;font-size:14px;font-weight:500;color:var(--muted);background:rgba(255,255,255,.6);padding:6px 14px;border-radius:999px;transition:opacity .6s}
+  .hint.gone{opacity:0}
+  .loading{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:16px;background:#d9f0ff;font-weight:600;font-size:18px;transition:opacity .6s}
+  .loading.done{opacity:0;pointer-events:none}
+  .loading .bar{width:200px;height:10px;border-radius:999px;background:rgba(43,35,64,.12);overflow:hidden}
+  .loading .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:inherit;transition:width .2s}
+  .credit{position:fixed;z-index:3;right:16px;top:72px;font-size:11px;color:var(--muted);opacity:.8;text-align:right}
+  body.night .credit,body.night .pager span,body.night .hint{color:#c9c4e6}
+  body.night .hint{background:rgba(40,36,80,.6)}
+  @media (max-width:760px){.card{left:12px;right:12px;width:auto;bottom:12px;padding:20px 20px 18px;border-radius:24px}.card h1{font-size:28px}.card p{font-size:15.5px}.pager{bottom:auto;top:132px;right:12px}.pager button{width:42px;height:42px;font-size:18px}.hint,.credit{display:none}}
+  @media (prefers-reduced-motion:reduce){.card,.toggle::before{transition:none}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+<canvas id="world" aria-label="A tiny 3D planet. Each place on it is a section of the portfolio. Drag to spin, click a building to visit."></canvas>
+
+<div class="top">
+  <div class="logo"><i aria-hidden="true"></i>noa.world</div>
+  <nav class="nav" id="nav" aria-label="Sections"></nav>
+  <button class="toggle" id="toggle" aria-label="Toggle day and night"></button>
+</div>
+<p class="hint" id="hint">Drag the planet · click a building</p>
+<p class="credit">Placeholder portfolio · 3D models by Kenney (CC0)<br>Built in Phoenix Code with Claude</p>
+
+<article class="card" id="card" aria-live="polite"></article>
+<div class="pager"><button id="prev" aria-label="Previous place">‹</button><span id="count">1 / 5</span><button id="next" aria-label="Next place">›</button></div>
+<div class="tip" id="tip"></div>
+<div class="loading" id="loading"><span>Building a tiny world…</span><div class="bar"><i id="bar"></i></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+/* ================= content (all placeholder: swap in your own) ================= */
+const SECTIONS = [
+  { id: 'home', label: 'Home', place: 'Noa’s house', html: `
+    <p class="kicker">Hello, I’m Noa ✦</p>
+    <h1>I design calm software for busy people.</h1>
+    <p>Product designer. This little planet is my portfolio: spin it, click a building, take your time.</p>
+    <div class="row"><button class="btn" data-go="2">See my work →</button><button class="btn ghost" data-go="4">Say hi</button></div>` },
+  { id: 'about', label: 'About', place: 'The café', html: `
+    <p class="kicker">About · the café</p>
+    <h1>Coffee, systems &amp; small details.</h1>
+    <p>Eight years of designing products, from scrappy startups to one very large company. I like design systems, prototyping in real code, and interfaces that get out of the way.</p>
+    <div class="chips"><span>Product design</span><span>Design systems</span><span>Prototyping</span><span>Motion</span><span>HTML &amp; CSS</span></div>` },
+  { id: 'work', label: 'Work', place: 'The studio', html: `
+    <p class="kicker">Work · the studio</p>
+    <h1>Selected projects</h1>
+    <div class="projects">
+      <button class="proj"><i style="background:linear-gradient(135deg,#ffd166,#ff6b4a)"></i><span><b>Ledger</b><small>A calmer banking app</small></span><em>2025</em></button>
+      <button class="proj"><i style="background:linear-gradient(135deg,#8be3c9,#4f7cff)"></i><span><b>Atlas</b><small>Design system for 40 teams</small></span><em>2024</em></button>
+      <button class="proj"><i style="background:linear-gradient(135deg,#c9c6ff,#7a5cff)"></i><span><b>Driftwood</b><small>Travel journal for iOS</small></span><em>2023</em></button>
+    </div>` },
+  { id: 'play', label: 'Play', place: 'The park', html: `
+    <p class="kicker">Play · the park</p>
+    <h1>Side quests.</h1>
+    <p>Tiny experiments, generative toys and the occasional kart race. Go on, click a kart.</p>
+    <div class="chips"><span>Kart track (you’re on it)</span><span>Pocket synth</span><span>Type playground</span></div>` },
+  { id: 'contact', label: 'Contact', place: 'Post office', html: `
+    <p class="kicker">Contact · post office</p>
+    <h1>Let’s make something.</h1>
+    <p>Open to freelance and full-time roles. I answer every postcard.</p>
+    <div class="row"><button class="btn hot" id="postcard">✉ Send a postcard</button><a class="btn ghost" href="mailto:hello@noa.world">hello@noa.world</a></div>` }
+];
+
+/* ================= UI ================= */
+const nav = document.getElementById('nav'), card = document.getElementById('card'), count = document.getElementById('count');
+SECTIONS.forEach((s, i) => { const b = document.createElement('button'); b.textContent = s.label; b.onclick = () => go(i); nav.appendChild(b); });
+let current = -1;
+function showCard(i) {
+  card.classList.add('out');
+  setTimeout(() => {
+    card.innerHTML = SECTIONS[i].html; card.classList.remove('out');
+    card.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(+b.dataset.go));
+    const pc = card.querySelector('#postcard'); if (pc) pc.onclick = sendPostcard;
+  }, current < 0 ? 0 : 220);
+  [...nav.children].forEach((b, k) => b.classList.toggle('on', k === i));
+  count.textContent = `${i + 1} / ${SECTIONS.length}`;
+}
+document.getElementById('prev').onclick = () => go((current + SECTIONS.length - 1) % SECTIONS.length);
+document.getElementById('next').onclick = () => go((current + 1) % SECTIONS.length);
+document.getElementById('toggle').onclick = () => setNight(!document.body.classList.contains('night'));
+
+/* ================= 3D ================= */
+const R = 10, TAU = Math.PI * 2, N = SECTIONS.length, STEP = TAU / N;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.getElementById('world');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, .1, 200);
+
+const hemi = new THREE.HemisphereLight(0xe6f4ff, 0xb59f88, 1.7); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.6);
+sun.position.set(9, R + 16, 12); sun.target.position.set(0, R, 0); scene.add(sun, sun.target);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 70 });
+sun.shadow.bias = -.0004; sun.shadow.normalBias = .03;
+
+const planet = new THREE.Group(); scene.add(planet);
+
+// ground: soft two-tone grass
+{
+  const g = new THREE.SphereGeometry(R, 160, 120), p = g.attributes.position, col = new Float32Array(p.count * 3);
+  const a = new THREE.Color('#97d877'), b = new THREE.Color('#7fc566'), c = new THREE.Color();
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const n = .5 + .5 * Math.sin(x * .9 + Math.sin(z * .7)) * Math.sin(y * .8 + z * .4);
+    c.copy(a).lerp(b, n); col.set([c.r, c.g, c.b], i * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+  m.receiveShadow = true; planet.add(m);
+}
+
+/* helpers to sit things on the sphere. a = angle around the X axis, x = sideways offset */
+const frame = (a, x) => {
+  const rr = Math.sqrt(R * R - x * x), up = new THREE.Vector3(x, rr * Math.cos(a), rr * Math.sin(a)).normalize();
+  const fwd = new THREE.Vector3(0, -Math.sin(a), Math.cos(a)), right = up.clone().cross(fwd).normalize();
+  return { up, fwd, right };
+};
+const orient = (obj, up, fwd) => { const right = up.clone().cross(fwd).normalize(); const f = right.clone().cross(up).normalize(); obj.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, f)); };
+function place(obj, a, x, heading = 0, lift = 0) {
+  const { up, fwd } = frame(a, x); orient(obj, up, fwd); obj.rotateY(heading);
+  obj.position.copy(up).multiplyScalar(R + lift); planet.add(obj); return obj;
+}
+// a ribbon that follows a small circle around the X axis (roads)
+function ring(x0, width, color, dashed = false, lift = .02) {
+  const pos = [], idx = [], S = 400;
+  for (let i = 0; i <= S; i++) { const ph = i / S * TAU; for (const sd of [-1, 1]) { const x = x0 + sd * width / 2, rr = Math.sqrt(R * R - x * x); const v = new THREE.Vector3(x, rr * Math.cos(ph), rr * Math.sin(ph)).normalize().multiplyScalar(R + lift); pos.push(v.x, v.y, v.z); } }
+  for (let i = 0; i < S; i++) { if (dashed && i % 2) continue; const a = 2 * i; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: .95, side: THREE.DoubleSide })); m.receiveShadow = true; planet.add(m); return m;
+}
+// a ribbon loop around a point on the sphere (kart track)
+function loopAround(a, x, r, width, color, lift = .03) {
+  const { up, fwd, right } = frame(a, x), C = up.clone().multiplyScalar(R), pos = [], idx = [], S = 120;
+  for (let i = 0; i <= S; i++) { const t = i / S * TAU; for (const rr of [r - width / 2, r + width / 2]) { const v = C.clone().addScaledVector(right, Math.cos(t) * rr * 1.25).addScaledVector(fwd, Math.sin(t) * rr).normalize().multiplyScalar(R + lift); pos.push(v.x, v.y, v.z); } }
+  for (let i = 0; i < S; i++) { const k = 2 * i; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: .95, side: THREE.DoubleSide })); m.receiveShadow = true; planet.add(m);
+  return { C, up, fwd, right, r };
+}
+
+const ROAD_X = 4.3;
+ring(ROAD_X, 1.25, '#5d6070');
+ring(ROAD_X, .07, '#fff6dc', true, .03);
+
+/* ================= models ================= */
+const BASE = 'models/kenney/';
+const FILES = {
+  house: 'suburban/building-type-k.glb', house2: 'suburban/building-type-c.glb', house3: 'suburban/building-type-g.glb', house4: 'suburban/building-type-o.glb', house5: 'suburban/building-type-r.glb', house6: 'suburban/building-type-a.glb',
+  treeL: 'suburban/tree-large.glb', treeS: 'suburban/tree-small.glb', planter: 'suburban/planter.glb', fence: 'suburban/fence-1x3.glb',
+  cafe: 'commercial/building-c.glb', shop: 'commercial/building-e.glb', mid: 'commercial/building-h.glb', tower: 'commercial/building-skyscraper-c.glb',
+  parasolA: 'commercial/detail-parasol-a.glb', parasolB: 'commercial/detail-parasol-b.glb', lowB: 'commercial/low-detail-building-b.glb', lowF: 'commercial/low-detail-building-f.glb',
+  taxi: 'cars/taxi.glb', sedan: 'cars/sedan.glb', van: 'cars/van.glb', police: 'cars/police.glb', delivery: 'cars/delivery.glb', suv: 'cars/suv.glb',
+  kartA: 'cars/kart-oobi.glb', kartB: 'cars/kart-oodi.glb', kartC: 'cars/kart-ooli.glb',
+  tDetailed: 'nature/tree_detailed.glb', tOak: 'nature/tree_oak.glb', tDefault: 'nature/tree_default.glb', tPine: 'nature/tree_pineRoundC.glb', tPineTall: 'nature/tree_pineTallA_detailed.glb', tFat: 'nature/tree_fat.glb',
+  bushL: 'nature/plant_bushLarge.glb', bush: 'nature/plant_bush.glb', fRed: 'nature/flower_redA.glb', fYellow: 'nature/flower_yellowB.glb', fPurple: 'nature/flower_purpleA.glb',
+  mush: 'nature/mushroom_redGroup.glb', rockB: 'nature/rock_largeB.glb', rockD: 'nature/rock_largeD.glb'
+};
+const SRC = {};
+const manager = new THREE.LoadingManager();
+manager.onProgress = (u, l, t) => { document.getElementById('bar').style.width = (l / t * 100) + '%'; };
+const loader = new GLTFLoader(manager);
+await Promise.all(Object.entries(FILES).map(([k, f]) => loader.loadAsync(BASE + f).then(g => { SRC[k] = g.scene; }).catch(e => console.warn('model failed', f, e))));
+
+// clone a model, normalise its height, sit its base on y=0, centre it
+function prop(key, h) {
+  const src = SRC[key]; const g = new THREE.Group(); if (!src) return g;
+  const m = src.clone(true); const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  const s = h / size.y; m.scale.setScalar(s); m.position.set(-ctr.x * s, -box.min.y * s, -ctr.z * s);
+  m.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
+  g.add(m); return g;
+}
+
+/* ================= the five places ================= */
+const ANG = SECTIONS.map((_, i) => i * STEP);
+const hotspots = [];            // clickable groups: { group, section, lift }
+const at = (i, s) => ANG[i] + s / R;    // s = arc offset in world units along the street
+function hero(i, key, h, s, x, heading = 0) { const g = place(prop(key, h), at(i, s), x, heading); g.userData = { section: i, base: g.position.clone(), lift: 0 }; hotspots.push(g); return g; }
+function deco(key, h, a, x, heading = 0) { return place(prop(key, h), a, x, heading); }
+
+// 0 · Home
+hero(0, 'house', 2.6, 0, -.6);
+hero(0, 'house2', 2.1, -2.6, -.9, .25);
+deco('tOak', 2.2, at(0, 1.9), -2.6); deco('treeL', 2.3, at(0, -1.2), 1.6); deco('fence', .45, at(0, 1.2), 1.2, Math.PI / 2);
+deco('planter', .5, at(0, -.8), 1.2); deco('fRed', .35, at(0, .9), 1.5); deco('fYellow', .35, at(0, .6), 1.75); deco('bushL', .6, at(0, -1.9), 1.3);
+// 1 · About (café)
+hero(1, 'cafe', 2.9, 0, -.7);
+deco('parasolA', .95, at(1, 1.0), 1.4); deco('parasolB', .95, at(1, -.6), 1.6); deco('tDefault', 1.9, at(1, 2.4), -.3);
+deco('lowB', 2.2, at(1, -2.4), -1.4); deco('bush', .5, at(1, 1.9), 1.2); deco('fPurple', .35, at(1, .2), 1.9);
+// 2 · Work (studio tower)
+hero(2, 'tower', 6.2, 0, -.9);
+hero(2, 'mid', 3.3, 2.4, -1.1, -.15);
+deco('lowF', 2.8, at(2, -2.5), -1.0); deco('tPine', 1.8, at(2, -1.2), 1.5); deco('tPine', 1.5, at(2, 1.3), 1.6); deco('planter', .5, at(2, .1), 1.4);
+// 3 · Play (park + kart track)
+const track = loopAround(at(3, 0), -.7, 1.55, .5, '#e9a46b');
+const parkHot = new THREE.Group(); planet.add(parkHot); parkHot.userData = { section: 3, base: new THREE.Vector3(), lift: 0 }; hotspots.push(parkHot);
+const parkProp = (key, h, s, x, hd = 0) => { const p = deco(key, h, at(3, s), x, hd); planet.remove(p); parkHot.add(p); return p; };
+parkProp('tFat', 2.1, -2.6, -2.2); parkProp('tDetailed', 2.4, 2.7, -2.0); parkProp('tPineTall', 2.6, 2.9, 1.4); parkProp('mush', .7, -.3, -.7);
+parkProp('rockB', .7, 1.0, 1.6); parkProp('bushL', .7, -2.2, 1.5); parkProp('fYellow', .35, .4, -.9); parkProp('fRed', .35, -.6, -.5);
+const karts = ['kartA', 'kartB', 'kartC'].map((k, j) => { const g = prop(k, .5); planet.add(g); g.userData = { t: j * TAU / 3, speed: .55 + j * .07, boost: 0, kart: true }; g.traverse(o => { if (o.isMesh) o.userData.kart = g; }); return g; });
+// 4 · Contact (post office)
+hero(4, 'shop', 2.8, 0, -.7);
+deco('delivery', .75, at(4, 1.8), 1.3, Math.PI / 2);
+deco('tOak', 2.0, at(4, -2.2), -1.0); deco('bush', .5, at(4, .8), 1.4); deco('fRed', .35, at(4, -.9), 1.5);
+// a red post box
+{ const g = new THREE.Group(); const mat = new THREE.MeshStandardMaterial({ color: '#e5483a', roughness: .5 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(.17, .17, .55, 20), mat); body.position.y = .35; const cap = new THREE.Mesh(new THREE.SphereGeometry(.17, 20, 10, 0, TAU, 0, Math.PI / 2), mat); cap.position.y = .62;
+  const slot = new THREE.Mesh(new THREE.BoxGeometry(.18, .03, .02), new THREE.MeshStandardMaterial({ color: '#2b2340' })); slot.position.set(0, .5, .17);
+  [body, cap].forEach(m => m.castShadow = true); g.add(body, cap, slot); place(g, at(4, -.4), 1.2); }
+
+/* filler town between the places, seeded so it's the same every load */
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const houses = ['house3', 'house4', 'house5', 'house6'], trees = ['tPine', 'tDefault', 'treeS', 'tPineTall', 'tOak', 'bushL'];
+for (let i = 0; i < N; i++) {
+  const mid = ANG[i] + STEP / 2;
+  // houses line the left flank, trees the right, so the middle stays open for the hero building
+  for (let k = -1; k <= 1; k++) { const a = mid + k * .16 + (rnd() - .5) * .04; deco(houses[(i + k + 5) % 4], 1.05 + rnd() * .3, a, -3.6 - rnd() * 1.2, Math.PI / 2 + (rnd() - .5) * .3); }
+  for (let k = 0; k < 3; k++) deco(trees[(rnd() * trees.length) | 0], .6 + rnd() * .5, mid + (rnd() - .5) * STEP * .5, 2.4 + rnd() * .8);
+}
+for (let k = 0; k < 70; k++) { const a = rnd() * TAU, side = rnd() < .5 ? -1 : 1, x = side < 0 ? -(4.4 + rnd() * 4) : 5.6 + rnd() * 2.6; deco(rnd() < .7 ? 'tPine' : 'tPineTall', .9 + rnd() * 1.2, a, x); }
+
+/* street lamps that glow at night */
+const bulbMat = new THREE.MeshStandardMaterial({ color: '#fff3c4', emissive: '#ffcf66', emissiveIntensity: 0 });
+const lamps = [];
+for (let i = 0; i < N; i++) for (const s of [-1.3, 1.3]) {
+  const g = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.04, .05, 1.1, 8), new THREE.MeshStandardMaterial({ color: '#3d3a52' })); pole.position.y = .55; pole.castShadow = true;
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(.12, 14, 10), bulbMat); bulb.position.y = 1.15; g.add(pole, bulb); place(g, at(i, s), 3.35);
+}
+const glows = ANG.map(a => { const l = new THREE.PointLight('#ffb766', 0, 7, 1.6); const { up } = frame(a, .2); l.position.copy(up).multiplyScalar(R + 1.6); planet.add(l); return l; });
+
+/* traffic on the ring road: two lanes, opposite directions */
+const traffic = ['taxi', 'sedan', 'van', 'police', 'suv', 'delivery', 'taxi', 'sedan'].map((k, j) => {
+  const g = prop(k, .62); planet.add(g); const dir = j % 2 ? 1 : -1;
+  g.userData = { ph: j / 8 * TAU + rnd() * .3, dir, lane: ROAD_X + dir * .3, speed: .05 + rnd() * .03 }; return g;
+});
+
+/* clouds + a hot-air balloon */
+const cloudMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, flatShading: true, emissive: '#ffffff', emissiveIntensity: .12 });
+const sky = new THREE.Group(); scene.add(sky);
+for (let k = 0; k < 9; k++) {
+  const c = new THREE.Group(); const n = 3 + (k % 3);
+  for (let j = 0; j < n; j++) { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(.5 + Math.random() * .45, 0), cloudMat); m.position.set(j * .6 - n * .3, Math.random() * .3, (Math.random() - .5) * .5); m.castShadow = true; c.add(m); }
+  // clouds orbit off to the sides so they frame the planet instead of crossing the centre
+  const a = k / 9 * TAU, rad = R + 4 + Math.random() * 2.5, side = k % 2 ? 1 : -1;
+  c.position.set(side * (7.5 + Math.random() * 4), Math.cos(a) * rad, Math.sin(a) * rad); c.scale.setScalar(.75); c.userData.spin = .02 + Math.random() * .02; sky.add(c);
+}
+const balloon = new THREE.Group();
+{ const pts = [[0, 0], [.18, .05], [.55, .45], [.78, 1.0], [.8, 1.55], [.62, 2.0], [.3, 2.28], [0, 2.36]].map(([x, y]) => new THREE.Vector2(x, y));
+  const env = new THREE.LatheGeometry(pts, 16).toNonIndexed(), p = env.attributes.position, col = new Float32Array(p.count * 3), A = new THREE.Color('#ff6b4a'), B = new THREE.Color('#ffd166');
+  for (let i = 0; i < p.count; i += 3) { const cx = (p.getX(i) + p.getX(i + 1) + p.getX(i + 2)) / 3, cz = (p.getZ(i) + p.getZ(i + 1) + p.getZ(i + 2)) / 3; const seg = Math.floor(((Math.atan2(cz, cx) + Math.PI) / TAU) * 16 + .5) % 2; const c = seg ? A : B; for (let v = 0; v < 3; v++) col.set([c.r, c.g, c.b], (i + v) * 3); }
+  env.setAttribute('color', new THREE.BufferAttribute(col, 3)); env.computeVertexNormals();
+  const e = new THREE.Mesh(env, new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: .7 })); e.position.y = .55; e.castShadow = true;
+  const basket = new THREE.Mesh(new THREE.BoxGeometry(.32, .26, .32), new THREE.MeshStandardMaterial({ color: '#8a5a3b', roughness: .9 })); basket.castShadow = true;
+  const ropeMat = new THREE.MeshStandardMaterial({ color: '#6b4a3a' });
+  for (const [x, z] of [[.13, .13], [-.13, .13], [.13, -.13], [-.13, -.13]]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(.012, .012, .5, 4), ropeMat); r.position.set(x * 1.2, .35, z * 1.2); balloon.add(r); }
+  balloon.add(e, basket); balloon.scale.setScalar(.9); scene.add(balloon); }
+
+/* ================= camera framing ================= */
+const LOOK = new THREE.Vector3(0, R - 2.2, 0);
+function resize() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
+  const f = THREE.MathUtils.clamp(1.5 / camera.aspect, 1, 2.2);
+  camera.position.set(0, R + 12 * f, 34 * f); camera.lookAt(LOOK);
+  if (w > 900) camera.setViewOffset(w, h, -w * .1, -h * .04, w, h); else camera.setViewOffset(w, h, 0, h * .04, w, h);
+  camera.updateProjectionMatrix();
+  // where the camera's gaze meets the planet: the selected place is rotated to exactly this spot
+  const dir = LOOK.clone().sub(camera.position).normalize(), hit = new THREE.Vector3();
+  new THREE.Ray(camera.position, dir).intersectSphere(new THREE.Sphere(new THREE.Vector3(), R), hit);
+  FACE = Math.atan2(hit.z, hit.y);
+  sun.target.position.copy(hit); sun.position.copy(hit).add(new THREE.Vector3(9, 16, 12));
+}
+var FACE = 0;
+addEventListener('resize', resize); resize();
+
+/* ================= navigation: spin the planet ================= */
+let ang = 0, target = 0, yaw = 0, yawT = 0, dragging = false, moved = 0, lastX = 0, lastY = 0, vel = 0;
+function go(i) {
+  i = ((i % N) + N) % N;
+  // nearest equivalent angle so it always spins the short way
+  let t = ANG[i]; while (t - ang > Math.PI) t -= TAU; while (ang - t > Math.PI) t += TAU; target = t;
+  if (i !== current) { showCard(i); current = i; }
+  document.getElementById('hint').classList.add('gone');
+}
+const nearest = () => ((Math.round(ang / STEP) % N) + N) % N;
+canvas.addEventListener('pointerdown', e => { dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY; vel = 0; canvas.setPointerCapture(e.pointerId); canvas.classList.add('drag'); });
+canvas.addEventListener('pointermove', e => {
+  if (dragging) {
+    const dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
+    vel = (dx - dy) * .0045; ang += vel; target = ang; yawT = THREE.MathUtils.clamp(yawT + dx * .002, -.25, .25);
+  } else hover(e);
+});
+canvas.addEventListener('pointerup', e => {
+  dragging = false; canvas.classList.remove('drag'); yawT = 0;
+  if (moved < 6) { click(e); return; }
+  ang += vel * 6; go(nearest());
+});
+let wheelLock = 0;
+addEventListener('wheel', e => { if (performance.now() < wheelLock || Math.abs(e.deltaY) < 8) return; wheelLock = performance.now() + 650; go(current + (e.deltaY > 0 ? 1 : -1)); }, { passive: true });
+addEventListener('keydown', e => { if (['ArrowRight', 'ArrowDown'].includes(e.key)) go(current + 1); if (['ArrowLeft', 'ArrowUp'].includes(e.key)) go(current - 1); });
+
+/* hover + click on buildings */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), tip = document.getElementById('tip');
+let hovered = null;
+function pick(e) {
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
+  const hits = ray.intersectObjects([...hotspots, ...karts], true);
+  for (const h of hits) { let o = h.object; while (o && !o.userData.section && o.userData.section !== 0 && !o.userData.kart) o = o.parent; if (o) return o.userData.kart === true ? { kart: o } : o.userData.kart ? { kart: o.userData.kart } : { spot: o }; }
+  return null;
+}
+function hover(e) {
+  const p = pick(e); hovered = p && p.spot ? p.spot : null;
+  canvas.classList.toggle('hot', !!p);
+  if (p) { tip.textContent = p.kart ? 'Vroom! Click me' : `${SECTIONS[p.spot.userData.section].place} · ${SECTIONS[p.spot.userData.section].label}`; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; tip.classList.add('on'); }
+  else tip.classList.remove('on');
+}
+function click(e) {
+  const p = pick(e); if (!p) return;
+  if (p.kart) { p.kart.userData.boost = 2.2; return; }
+  go(p.spot.userData.section);
+}
+
+/* postcard: an envelope flies off from the post office */
+const flights = [];
+function sendPostcard() {
+  const env = new THREE.Group();
+  const paper = new THREE.Mesh(new THREE.BoxGeometry(.5, .04, .34), new THREE.MeshStandardMaterial({ color: '#fffaf2' }));
+  const flap = new THREE.Mesh(new THREE.ConeGeometry(.2, .18, 3), new THREE.MeshStandardMaterial({ color: '#ff6b4a' })); flap.rotation.set(Math.PI / 2, 0, Math.PI); flap.position.set(0, .03, -.04); flap.scale.set(1.2, 1, .25);
+  env.add(paper, flap); env.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  const start = new THREE.Vector3(.2, R + 2.2, .6); env.position.copy(start); scene.add(env);
+  flights.push({ env, t: 0, start });
+  const b = card.querySelector('#postcard'); if (b) { b.textContent = '✓ Postcard sent!'; setTimeout(() => { if (b.isConnected) b.textContent = '✉ Send another'; }, 1800); }
+}
+
+/* day / night */
+let night = 0, nightT = 0;
+function setNight(on) { document.body.classList.toggle('night', on); nightT = on ? 1 : 0; }
+
+/* ================= loop ================= */
+const clock = new THREE.Clock(); const tmpV = new THREE.Vector3();
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  if (!dragging) { ang += (target - ang) * Math.min(1, dt * 4.5); }
+  yaw += (yawT - yaw) * Math.min(1, dt * 5);
+  planet.rotation.set(FACE - ang, yaw + (reduce ? 0 : Math.sin(t * .35) * .03), 0);
+
+  // hover lift on hotspots
+  hotspots.forEach(g => { const want = g === hovered ? .25 : 0; g.userData.lift += (want - g.userData.lift) * Math.min(1, dt * 10); const up = g.userData.base.clone().normalize(); if (g.userData.base.lengthSq()) g.position.copy(g.userData.base).addScaledVector(up, g.userData.lift); else g.position.copy(up.set(0, 0, 0)); });
+  if (hovered === parkHot) parkHot.position.copy(frame(ANG[3], -.7).up).multiplyScalar(parkHot.userData.lift); else if (parkHot.userData.lift > .001) parkHot.position.copy(frame(ANG[3], -.7).up).multiplyScalar(parkHot.userData.lift);
+
+  // traffic
+  traffic.forEach(c => { const u = c.userData; u.ph += u.speed * u.dir * dt * (reduce ? .3 : 1); const f = frame(u.ph, u.lane); orient(c, f.up, u.dir > 0 ? f.fwd : f.fwd.clone().negate()); c.position.copy(f.up).multiplyScalar(R + .03); });
+  // karts on the park loop
+  karts.forEach(k => { const u = k.userData; u.boost = Math.max(0, u.boost - dt); u.t += dt * u.speed * (1 + u.boost * 1.6);
+    const { C, fwd, right, r } = track; const ct = Math.cos(u.t), st = Math.sin(u.t);
+    const p = C.clone().addScaledVector(right, ct * r * 1.25).addScaledVector(fwd, st * r); const up = p.clone().normalize(); const dir = right.clone().multiplyScalar(-st * 1.25).addScaledVector(fwd, ct).normalize();
+    orient(k, up, dir); if (u.boost > 0) k.rotateY(Math.sin(u.boost * 12) * .25); k.position.copy(up).multiplyScalar(R + .05); });
+
+  // sky
+  sky.children.forEach(c => { c.position.applyAxisAngle(tmpV.set(1, 0, 0), c.userData.spin * dt); c.lookAt(0, 0, 0); });
+  balloon.position.set(5 + Math.sin(t * .2) * 1.2, R + 1.8 + Math.sin(t * .8) * .25, 3.5 + Math.cos(t * .2) * 1.5); balloon.rotation.y = t * .1;
+
+  // postcards
+  for (let i = flights.length - 1; i >= 0; i--) { const f = flights[i]; f.t += dt / 2.4; const k = f.t;
+    f.env.position.set(f.start.x + Math.sin(k * 6) * .6 + k * 6, f.start.y + k * k * 9 + Math.sin(k * 10) * .15, f.start.z - k * 5); f.env.rotation.set(Math.sin(k * 8) * .4, k * 6, Math.sin(k * 5) * .5);
+    if (f.t >= 1) { scene.remove(f.env); flights.splice(i, 1); } }
+
+  // day ↔ night
+  night += (nightT - night) * Math.min(1, dt * 2.5);
+  hemi.intensity = THREE.MathUtils.lerp(1.7, .35, night); hemi.color.lerpColors(new THREE.Color('#e6f4ff'), new THREE.Color('#5d63b8'), night);
+  sun.intensity = THREE.MathUtils.lerp(2.6, .45, night); sun.color.lerpColors(new THREE.Color('#fff1dc'), new THREE.Color('#9fb4ff'), night);
+  bulbMat.emissiveIntensity = night * 3; glows.forEach(l => l.intensity = night * 14); cloudMat.emissiveIntensity = THREE.MathUtils.lerp(.12, .02, night);
+  cloudMat.color.lerpColors(new THREE.Color('#ffffff'), new THREE.Color('#8d8fc4'), night);
+
+  renderer.render(scene, camera);
+}
+go(0); loop();
+document.getElementById('loading').classList.add('done');
+window.world = { go, setNight, sendPostcard, sections: SECTIONS.map(s => s.id) };
+</script>
+</body>
+</html>
