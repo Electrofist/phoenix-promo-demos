@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4ebd6"><title>Forno Nero — Good things inside.</title>
+<style>
+@font-face{font-family:Fraunces;src:url('assets/pizza-pull/fraunces.ttf') format('truetype');font-weight:100 900;font-display:swap}
+:root{--paper:#f4ebd6;--ink:#b7261c;--box:#c92d21;--cream:#fff0cf;--size:440px;--depth:25px;--display:Fraunces,Georgia,serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,sans-serif}button,a{-webkit-tap-highlight-color:transparent}button{font:inherit}a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}button:focus-visible,a:focus-visible{outline:2px solid currentColor;outline-offset:7px}
+.hero{height:100svh;min-height:560px;position:relative;overflow:hidden;isolation:isolate}
+.masthead{position:absolute;inset:25px 32px auto;display:flex;justify-content:space-between;align-items:center;z-index:10}.wordmark{font-family:var(--display);font-size:25px;font-weight:850;line-height:.85;letter-spacing:-1.3px}.wordmark span{display:block}.nav{display:flex;gap:25px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px}.edition{font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.side-note{position:absolute;left:30px;top:50%;writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.stage{position:absolute;inset:0;perspective:1800px;perspective-origin:50% 40%;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}.stage.dragging{cursor:grabbing}
+.box-position{position:absolute;width:var(--size);height:var(--size);left:50%;top:52%;transform:translate(-50%,-50%);transform-style:preserve-3d}
+.box{width:100%;height:100%;position:relative;transform:rotateX(19deg) rotateZ(-9deg);transform-style:preserve-3d;will-change:transform}
+.ground{position:absolute;inset:3%;background:#3b1009;filter:blur(23px);opacity:.22;transform:translate3d(12px,24px,-30px);pointer-events:none}
+.tray{position:absolute;inset:0;background:#e7c99d;box-shadow:inset 0 0 0 2px #b99970;transform:translateZ(-1px)}
+.liner{position:absolute;inset:2.5%;background:#f4e1b9;transform:rotate(-2deg);box-shadow:0 2px 3px #52270c25;overflow:hidden}
+.liner:after{content:'FORNO NERO    FORNO NERO    FORNO NERO';position:absolute;inset:15px;line-height:4.8;word-spacing:12px;font-size:11px;font-weight:bold;color:#a46b3935;transform:rotate(-25deg);letter-spacing:3px}
+.pizza{position:absolute;width:97%;height:97%;left:1.5%;top:1.5%;object-fit:contain;transform:translateZ(6px) rotate(7deg);filter:drop-shadow(3px 8px 5px #6b331754);pointer-events:none}
+.lid-shadow{position:absolute;inset:0;background:linear-gradient(#40220be0,#40220b00 90%);opacity:0;transform:translateZ(8px);pointer-events:none;transform-origin:top}
+.wall{position:absolute;background:var(--box);transform-style:preserve-3d;backface-visibility:visible;border:1px solid #ab241a}.front-wall{left:0;right:0;top:100%;height:var(--depth);transform-origin:top;transform:rotateX(-90deg);background:#ae231a;text-align:center;color:var(--cream);font-size:10px;letter-spacing:5px;line-height:var(--depth)}.left-wall,.right-wall{top:0;bottom:0;width:var(--depth);background:#b92a1d}.left-wall{left:0;transform-origin:left;transform:rotateY(90deg)}.right-wall{right:0;transform-origin:right;transform:rotateY(-90deg)}
+.flap{position:absolute;top:1%;height:98%;width:9%;background:#d4af7f;border:1px solid #b79264;transform-style:preserve-3d}.flap.left{left:0;transform-origin:left center;transform:rotateY(-90deg)}.flap.right{right:0;transform-origin:right center;transform:rotateY(90deg)}.flap:after{content:'';position:absolute;inset:10px;border:1px solid #ad87563b}
+.lid{position:absolute;inset:0;transform-origin:50% 0;transform:translateZ(27px);transform-style:preserve-3d;will-change:transform}
+.lid-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--box);border:1px solid #db4831;box-shadow:0 2px 0 #9e281b,0 4px 0 #c99b68;overflow:hidden}
+.lid-front{display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--cream)}
+.lid-front:before,.lid-front:after{content:'';position:absolute;inset:5%;border:1px solid #fff0cf6b;pointer-events:none}.lid-front:after{inset:6%;border-color:#fff0cf30}
+.box-brand{position:absolute;top:10%;font-size:calc(var(--size)*.029);letter-spacing:calc(var(--size)*.008);font-weight:700}
+.cover-title{margin:-2% 0 0;font-family:var(--display);font-weight:850;font-size:calc(var(--size)*.182);line-height:.82;letter-spacing:calc(var(--size)*-.011);text-align:center;transform:rotate(-4deg);font-variation-settings:'SOFT' 70,'WONK' 1}
+.cover-title span{display:block}.cover-title em{font-size:.55em;font-weight:650;letter-spacing:-.04em;display:block;line-height:1.1;margin-top:4%;font-style:italic}
+.box-bottom{position:absolute;bottom:10%;font-size:calc(var(--size)*.023);font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.lid-back{transform:rotateX(180deg);background:#edce9d;color:#ac3322;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:#caa374;box-shadow:inset 0 0 35px #a86b3420}
+.inside-title{font-family:var(--display);font-size:calc(var(--size)*.118);font-weight:800;letter-spacing:-.065em;line-height:.88;text-align:center}.inside-title span{display:block}.inside-note{font-size:calc(var(--size)*.024);letter-spacing:2px;margin-top:5%;font-weight:700;text-transform:uppercase}
+.lid-tab{position:absolute;top:99.5%;left:42%;width:16%;height:4%;background:var(--box);border-radius:0 0 8px 8px;backface-visibility:hidden;border:1px solid #a92319;border-top:0}.lid-tab:after{content:'';width:30%;height:1px;background:#f5ddaf66;position:absolute;left:35%;top:40%}
+.hero-bottom{position:absolute;bottom:26px;left:32px;right:32px;display:flex;align-items:flex-end;justify-content:space-between;z-index:10;pointer-events:none}.support{font-family:var(--display);font-weight:600;font-size:24px;line-height:1;letter-spacing:-1px;margin:0}.support em{font-weight:450}.interaction{text-align:right;pointer-events:auto}.toggle{border:0;background:none;padding:8px 0;color:inherit;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1.3px;border-bottom:1px solid #b7261c70;cursor:pointer}.toggle span{display:inline-block;margin-left:25px}.hint{font-size:9px;letter-spacing:1.3px;margin:9px 0 0;text-transform:uppercase;opacity:.7}.diagnostic{position:absolute;bottom:95px;left:32px;right:32px;font-size:12px;text-align:center}
+.note{background:var(--ink);color:var(--cream);padding:50px max(32px,calc((100vw - 1000px)/2));display:grid;grid-template-columns:1fr 1fr;gap:45px;font-size:12px;line-height:1.7}.note h2{font-family:var(--display);font-size:36px;line-height:1;letter-spacing:-1px;margin:0 0 20px}.note p{max-width:430px}.note a{text-decoration:underline;text-underline-offset:3px}.fine{opacity:.75;font-size:10px}.debug{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--paper);padding:12px;z-index:20;box-shadow:0 2px 20px #0002;display:flex;gap:10px}.debug[hidden]{display:none}
+@media(max-width:600px){.hero{min-height:580px}.masthead{inset:22px}.edition,.side-note{display:none}.nav{gap:18px;font-size:10px}.hero-bottom{left:22px;right:22px;bottom:26px}.support{font-size:20px}.hint{font-size:8px;letter-spacing:.6px}.toggle{font-size:10px}.toggle span{margin-left:12px}.note{grid-template-columns:1fr;padding:40px 24px;gap:10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero" id="hero" aria-label="Forno Nero pizza box">
+<header class="masthead"><a class="wordmark" href="#hero" aria-label="Forno Nero home">FORNO<span>NERO</span></a><span class="edition">Good things come together.</span><nav class="nav" aria-label="Main navigation"><a href="#note">Our idea</a><a href="#credits">Credits</a></nav></header>
+<span class="side-note">Wood-fired. Made to share.</span>
+<div class="stage" id="stage" aria-label="Drag upward to open the pizza box">
+<div class="box-position" id="position"><div class="box" id="box">
+<div class="ground" id="ground"></div><div class="tray"><div class="liner"></div></div>
+<div class="flap left" id="leftFlap"></div><div class="flap right" id="rightFlap"></div>
+<img class="pizza" id="pizza" src="assets/pizza-pull/pizza-master.png" alt="Freshly baked pizza with browned crust, melted cheese, tomato and pepperoni" draggable="false" fetchpriority="high">
+<div class="lid-shadow" id="shadow"></div>
+<div class="wall front-wall">FORNO NERO</div><div class="wall left-wall"></div><div class="wall right-wall"></div>
+<div class="lid" id="lid"><div class="lid-face lid-front"><span class="box-brand">FORNO NERO</span><h1 class="cover-title"><span>GOOD</span><span>THINGS.</span><em>inside.</em></h1><span class="box-bottom">Open for good things</span></div><div class="lid-face lid-back"><div class="inside-title"><span>GOOD THINGS</span><span>ARE BETTER</span><span>SHARED.</span></div><span class="inside-note">Save someone a slice.</span></div><div class="lid-tab"></div></div>
+</div></div></div>
+<div class="hero-bottom"><p class="support">A little box.<br><em>A very good idea.</em></p><div class="interaction"><button class="toggle" id="toggle" aria-pressed="false" aria-controls="stage">Open the box <span>↗</span></button><p class="hint" id="hint">Or drag the lid upward</p></div></div>
+<p class="diagnostic" id="diagnostic" role="status" hidden></p>
+</section>
+<footer class="note" id="note"><div><h2>Good things inside.</h2><p>Wood-fired. Made to share. A small celebration of the best part of takeaway: opening the box.</p><p class="fine">Forno Nero is a fictional pizzeria. An interactive campaign study for Phoenix Code.</p></div><div id="credits"><p>Pizza photograph by <a href="https://unsplash.com/@thisisnando">Fernando Andrade</a> on <a href="https://unsplash.com/photos/_P76trHTWDE">Unsplash</a>, used under the <a href="https://unsplash.com/license">Unsplash License</a>. Local photograph with AI-assisted background extraction; the original is retained in the project.</p><p class="fine">Fraunces by Undercase Type — <a href="assets/pizza-pull/OFL.txt">SIL Open Font License</a>. Supporting type: Arial. Packaging artwork and CSS geometry made for this fictional campaign.</p></div></footer>
+</main>
+<div class="debug" id="debug" hidden><button id="play">Play 5s</button><button id="reset">Reset</button><input id="scrub" type="range" min="0" max="1" step=".001" value="0" aria-label="Box opening progress"></div>
+<script>
+(()=>{
+'use strict';
+// ART DIRECTION — the same progress drives drag, keyboard control and capture.
+const CONFIG={image:'assets/pizza-pull/pizza-master.png',colors:{paper:'#f4ebd6',ink:'#b7261c',box:'#c92d21'},font:'Fraunces',framing:{width:.72,height:.70,max:690},lidAngle:116,tilt:19,openTilt:12,closedTurn:-9,openTurn:-4,openScale:.92,openShift:.18,dragDistance:230,timing:{hold:700,open:1600,settle:700,finalHold:2000}};
+const $=id=>document.getElementById(id),hero=$('hero'),stage=$('stage'),box=$('box'),lid=$('lid'),position=$('position'),pizza=$('pizza'),toggle=$('toggle'),motion=matchMedia('(prefers-reduced-motion: reduce)');
+let progress=0,size=440,frame=0,timer=0,deadline=0,generation=0,settlePromise=null,drag=null,isReady=false;
+window.boxErrors=[];addEventListener('error',e=>window.boxErrors.push(e.message));
+const clamp=v=>Number.isFinite(Number(v))?Math.max(0,Math.min(1,Number(v))):0;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function paint(v){progress=clamp(v);const p=progress,relax=Math.max(0,(p-.3)/.7);
+lid.style.transform=`translateZ(27px) rotateX(${CONFIG.lidAngle*p}deg)`;
+box.style.transform=`rotateX(${CONFIG.tilt+(CONFIG.openTilt-CONFIG.tilt)*p}deg) rotateZ(${CONFIG.closedTurn+(CONFIG.openTurn-CONFIG.closedTurn)*p}deg) scale(${1-(1-CONFIG.openScale)*p})`;
+position.style.top=`calc(52% + ${size*CONFIG.openShift*p}px)`;
+$('leftFlap').style.transform=`rotateY(${-90-78*relax}deg)`;$('rightFlap').style.transform=`rotateY(${90+78*relax}deg)`;
+$('shadow').style.opacity=String(Math.sin(Math.PI*p)*.65);$('shadow').style.transform=`translateZ(8px) scaleY(${1-p*.8})`;
+$('ground').style.opacity=String(.22-p*.04);
+toggle.innerHTML=p>.5?'Close the box <span>↙</span>':'Open the box <span>↗</span>';toggle.setAttribute('aria-pressed',String(p>.5));$('hint').textContent=p>.5?'Good things are better shared':'Or drag the lid upward';$('scrub').value=String(p);
+}
+function resize(){size=Math.max(180,Math.min(hero.clientWidth*CONFIG.framing.width,hero.clientHeight*CONFIG.framing.height,CONFIG.framing.max));document.documentElement.style.setProperty('--size',size+'px');paint(progress)}
+function stop(){generation++;cancelAnimationFrame(frame);clearTimeout(timer);clearTimeout(deadline);if(settlePromise){settlePromise({cancelled:true});settlePromise=null}return generation}
+function schedule(fn){if(document.hidden)timer=setTimeout(()=>fn(performance.now()),16);else frame=requestAnimationFrame(fn)}
+function tween(target,duration=1000){stop();if(motion.matches){paint(target);return}const from=progress,start=performance.now(),token=generation;function tick(now){if(token!==generation)return;const t=Math.min(1,(now-start)/duration);paint(from+(target-from)*ease(t));if(t<1)schedule(tick)}schedule(tick)}
+function reset(){stop();drag=null;stage.classList.remove('dragging');paint(0)}
+const ready=Promise.all([pizza.decode(),document.fonts.load('800 24px Fraunces'),document.fonts.ready]).then(()=>{isReady=true;resize();return {ready:true}}).catch(error=>{$('diagnostic').hidden=false;$('diagnostic').textContent='The pizza image could not load. Please reload to open the box.';toggle.disabled=true;throw error});ready.catch(()=>{});
+async function play(){const token=stop();await ready;if(token!==generation)return {cancelled:true};paint(0);if(motion.matches){paint(1);return {reducedMotion:true}}return new Promise(resolve=>{settlePromise=resolve;const start=performance.now(),t=CONFIG.timing,total=t.hold+t.open+t.settle+t.finalHold;function done(){if(token!==generation)return;cancelAnimationFrame(frame);clearTimeout(timer);clearTimeout(deadline);paint(1);settlePromise=null;resolve({complete:true})}function tick(now){if(token!==generation)return;const elapsed=now-start;paint(elapsed<t.hold?0:ease(Math.min(1,(elapsed-t.hold)/t.open)));if(elapsed>=total)done();else schedule(tick)}deadline=setTimeout(done,total);schedule(tick)})}
+stage.addEventListener('pointerdown',e=>{if(!isReady||e.button!==0)return;stop();drag={id:e.pointerId,y:e.clientY,x:e.clientX,p:progress};stage.setPointerCapture(e.pointerId);stage.classList.add('dragging')});
+stage.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const next=clamp(drag.p+(drag.y-e.clientY)/Math.min(CONFIG.dragDistance,size*.55));paint(motion.matches?(next>.5?1:0):next)});
+function end(e,cancelled){if(!drag||e.pointerId!==drag.id)return;const moved=Math.hypot(e.clientY-drag.y,e.clientX-drag.x);drag=null;stage.classList.remove('dragging');if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);tween(cancelled?0:moved<5?(progress>.5?0:1):(progress>.32?1:0),750)}
+stage.addEventListener('pointerup',e=>end(e,false));stage.addEventListener('pointercancel',e=>end(e,true));stage.addEventListener('lostpointercapture',()=>{if(drag){drag=null;stage.classList.remove('dragging');tween(0,500)}});
+toggle.addEventListener('click',()=>{if(isReady)tween(progress>.5?0:1,1300)});addEventListener('resize',resize);motion.addEventListener('change',()=>{stop();paint(progress>.5?1:0)});
+// Upward touch drag belongs only to the box; normal scrolling remains available around it.
+stage.style.touchAction='none';
+if(new URLSearchParams(location.search).has('debug'))$('debug').hidden=false;$('play').onclick=play;$('reset').onclick=reset;$('scrub').oninput=e=>{stop();paint(e.target.value)};
+window.boxDemo={ready,reset,play,setProgress(v){stop();paint(v)},get progress(){return progress},config:CONFIG};window.pizzaDemo=window.boxDemo;resize();
+})();
+</script>
+</body></html>
