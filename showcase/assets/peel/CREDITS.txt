@@ -1,0 +1,9 @@
+FOLD — fictional studio / original poster compositions
+Photograph: Jonny James, Unsplash, ulFAi1jkNcA
+https://unsplash.com/photos/ulFAi1jkNcA
+https://unsplash.com/@jonnyjames2
+Local file: concrete.jpg (downloaded through Phoenix image service)
+Licence: Unsplash License https://unsplash.com/license
+Verified 2026-10-26: permits downloaded images to be used and modified in commercial and non-commercial work. Do not resell the unmodified image or compile a competing image service.
+Fonts: Georgia and Arial, device-provided; no font binaries redistributed.
+Implementation: original native WebGL and Canvas 2D; no external runtime libraries.
