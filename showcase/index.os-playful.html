@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-skin="Playful">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phoenix OS · Playful</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="os.css">
+<style>
+  /* Playful skin: inspired by Duolingo. Sky, clouds, chunky 3D buttons, bright owl-green. */
+  :root{
+    --font:'Nunito',system-ui,sans-serif; --font-mono:'DM Mono',ui-monospace,monospace;
+    --text:#3c3c3c; --text-dim:#777; --accent:#58cc02; --accent-ink:#fff;
+    --wallpaper:
+      radial-gradient(70px 34px at 16% 22%,#fff 98%,transparent),radial-gradient(52px 30px at 21% 19%,#fff 98%,transparent),
+      radial-gradient(90px 40px at 72% 14%,#fff 98%,transparent),radial-gradient(60px 32px at 78% 11%,#fff 98%,transparent),
+      radial-gradient(60px 28px at 45% 34%,rgba(255,255,255,.85) 98%,transparent),
+      radial-gradient(140% 38% at 30% 118%,#58cc02 60%,transparent 60.5%),radial-gradient(120% 34% at 85% 120%,#89e219 60%,transparent 60.5%),
+      linear-gradient(#bfe9ff,#ddf4ff);
+    --menubar-bg:#fff; --menubar-text:#3c3c3c; --menubar-border:#e5e5e5;
+    --win-bg:#fff; --win-border:2px solid #e5e5e5; --win-radius:22px; --win-shadow:0 6px 0 #d9d9d9,0 30px 50px -24px rgba(0,60,120,.35); --win-blur:none;
+    --title-bg:#fff; --title-bg-inactive:#fff; --title-text:#3c3c3c; --title-weight:900; --title-size:15px; --title-h:44px;
+    --wbtn-size:16px; --wbtn-close:#ff4b4b; --wbtn-min:#ffc800; --wbtn-max:#58cc02; --wbtn-ink:#fff; --wbtn-glyph:1; --wbtn-shadow:inset 0 -3px 0 rgba(0,0,0,.18);
+    --panel:#f7f7f7; --panel-2:#e5e5e5; --line:#e5e5e5;
+    --btn-bg:#fff; --btn-text:#4b4b4b; --btn-border:2px solid #e5e5e5; --btn-radius:14px; --btn-shadow:0 4px 0 #e5e5e5;
+    --dock-bg:#fff; --dock-border:2px solid #e5e5e5; --dock-radius:26px; --dock-blur:none; --dock-shadow:0 6px 0 #d9d9d9; --dock-pad:10px;
+    --tile-radius:16px; --icon-ink:#fff; --tile-shadow:inset 0 -5px 0 rgba(0,0,0,.18); --icon-stroke:2.5;
+    --t-terminal:#4b4b4b; --t-files:#1cb0f6; --t-notes:#ffc800; --t-paint:#ff86d0; --t-music:#ce82ff; --t-snake:#58cc02;
+    --t-code:#2b70c9; --t-settings:#afafaf; --t-about:#58cc02; --t-trash:#afafaf;
+    --term-bg:#2b2b2b; --term-text:#f1f1f1; --term-prompt:#89e219; --term-dim:#9a9a9a;
+    --paper:#fff; --sel:rgba(88,204,2,.3); --label-bg:#3c3c3c; --desk-label:#3c3c3c; --desk-label-shadow:none;
+    --step-radius:10px; --step-on-shadow:inset 0 -4px 0 rgba(0,0,0,.18); --snake-radius:18px; --notes-bg:#fffdf3;
+    --boot-bg:#58cc02; --boot-text:#fff;
+  }
+  .ui-btn{text-transform:uppercase;letter-spacing:.06em;font-weight:900;padding:8px 16px}
+  .ui-btn:active{box-shadow:none;transform:translateY(4px)}
+  .ui-btn.primary{background:#58cc02;color:#fff;border-color:#58cc02;box-shadow:0 4px 0 #58a700}
+  .ui-btn.on{box-shadow:0 4px 0 #58a700}
+  .wbtn{border-radius:50%}
+  .mb-logo{color:#58cc02}
+  .mb-app{font-weight:900}
+  .dock-item::after{background:#58cc02;width:8px;height:8px;bottom:-7px}
+  .dock-item:hover{transform:translateY(-6px) rotate(-4deg) scale(1.1)}
+  .desk-icon{font-weight:800;background:rgba(255,255,255,.75);border-radius:14px}
+  .watermark{color:rgba(255,255,255,.55);font-weight:900;top:38%}
+  .term{border-radius:0 0 20px 20px}
+  .step:not(.on){box-shadow:inset 0 -3px 0 rgba(0,0,0,.08)}
+</style>
+</head>
+<body>
+<script src="os.js"></script>
+</body>
+</html>
