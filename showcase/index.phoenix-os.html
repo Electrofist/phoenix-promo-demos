@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" data-skin="Phoenix">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phoenix OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&family=Geist+Mono:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="os.css">
+<style>
+  /* Phoenix skin: the default tokens live in os.css; this adds the living aurora. */
+  body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+    background:radial-gradient(30% 35% at 30% 40%,rgba(255,106,44,.35),transparent 70%),radial-gradient(30% 35% at 70% 60%,rgba(140,70,255,.3),transparent 70%);
+    filter:blur(40px);animation:aurora 18s ease-in-out infinite alternate}
+  @keyframes aurora{to{transform:translate(6%,-4%) rotate(8deg) scale(1.1)}}
+</style>
+</head>
+<body>
+<script src="os.js"></script>
+</body>
+</html>
