@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Namiya · sushi &amp; izakaya</title>
+<meta name="description" content="Twelve seats around a hinoki counter, a stream through the garden, and a menu that changes with the morning's catch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Shippori+Mincho:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f3ead8; --paper-hi: #fbf6ea; --ink: #1f1a17; --ink-2: #5d5249; --ink-3: #8b7f73;
+    --ver: #c8442b; --night: #172b35; --cream: #f6efe2;
+    --serif: 'Shippori Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+    --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .34 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --card-shadow: 0 1px 0 rgba(31,26,23,.06), 0 2px 2px rgba(31,26,23,.06), 8px 14px 0 -4px rgba(31,26,23,.07), 12px 22px 34px -14px rgba(31,26,23,.4);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  #stream { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; pointer-events: none; }
+  header, main, footer { position: relative; z-index: 1; }
+  body::after { content: ''; position: fixed; inset: 0; pointer-events: none; background-image: var(--grain); opacity: .2; mix-blend-mode: multiply; z-index: 2; }
+  body.on-water { cursor: crosshair; }
+  .serif { font-family: var(--serif); }
+  .kicker { font-size: 12.5px; letter-spacing: .14em; text-transform: lowercase; color: var(--ver); }
+
+  /* ---------- buttons: paper tabs ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; background: var(--ink); color: var(--cream); font: 500 15px var(--sans);
+         text-decoration: none; border: 0; border-radius: 2px; cursor: pointer; transform: rotate(-.6deg);
+         box-shadow: 0 1px 0 rgba(0,0,0,.08), 3px 5px 0 -1px rgba(0,0,0,.12), 6px 12px 22px -8px rgba(0,0,0,.45); transition: transform .18s, box-shadow .18s; }
+  .btn:hover { transform: rotate(0deg) translateY(-2px); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ver { background: var(--ver); color: #fff6ea; }
+  .btn.light { background: var(--cream); color: var(--ink); }
+  .btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px rgba(31,26,23,.55); transform: none; }
+  .btn.ghost:hover { background: rgba(31,26,23,.05); }
+  .btn:focus-visible, a:focus-visible, button:focus-visible { outline: 2px dashed var(--ver); outline-offset: 3px; }
+
+  /* ---------- hero ---------- */
+  .hero { height: 100vh; height: 100svh; min-height: 620px; }
+  .hero > * { position: absolute; }
+  .nav { top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 26px 5vw 0; }
+  .logo { font: 700 22px var(--serif); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+  .logo .mon { width: 38px; height: 38px; border-radius: 50%; background: var(--ver); color: var(--cream); display: grid; place-items: center; font-size: 19px; box-shadow: 3px 5px 10px -3px rgba(0,0,0,.35); }
+  .links { display: flex; gap: 34px; font-size: 15px; }
+  .links a { text-decoration: none; opacity: .8; }
+  .links a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+  .nav .btn { padding: 10px 18px; font-size: 14px; }
+  .copy { left: 8vw; top: 50%; transform: translateY(-56%); max-width: min(620px, 54vw); }
+  .copy h1 { font: 700 clamp(44px, 6vw, 88px)/1.03 var(--serif); letter-spacing: -.015em; margin: 18px 0 22px; }
+  .copy h1 em { font-style: normal; color: var(--ver); }
+  .copy .lede { font-size: clamp(16px, 1.3vw, 19px); max-width: 30em; color: var(--ink-2); }
+  .ctas { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+  .count { left: 8vw; bottom: 34px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .count b { color: var(--ink); font-weight: 500; }
+
+  /* ---------- sections (transparent: the stream shows through, paper blocks hide it) ---------- */
+  section { padding: 120px 8vw; position: relative; }
+  .sec-head { max-width: min(760px, 52vw); margin-bottom: 56px; }
+  h2 { font: 700 clamp(34px, 4.2vw, 58px)/1.08 var(--serif); letter-spacing: -.01em; margin: 12px 0 14px; }
+  .note { color: var(--ink-2); max-width: 36em; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; align-items: start; }
+  .card { background: var(--paper-hi); padding: 30px 30px 26px; box-shadow: var(--card-shadow); position: relative; }
+  .card:nth-child(1) { transform: rotate(-.5deg); }
+  .card:nth-child(2) { transform: rotate(.4deg) translateY(22px); }
+  .card:nth-child(3) { transform: rotate(-.25deg); }
+  .card h3 { font: 700 26px/1.2 var(--serif); border-bottom: 1.5px solid var(--ink); padding-bottom: 12px; margin-bottom: 8px; }
+  .card h3 span { display: block; font: 400 13px var(--sans); color: var(--ink-3); margin-top: 2px; }
+  .items { list-style: none; padding: 0; }
+  .items li { display: grid; grid-template-columns: 2.4em 1fr auto; column-gap: 12px; padding: 13px 0; border-bottom: 1px dashed rgba(31,26,23,.18); }
+  .items li:last-child { border-bottom: 0; }
+  .items .jp { grid-row: span 2; font: 500 17px var(--serif); color: var(--ver); padding-top: 2px; }
+  .items b { font-weight: 500; }
+  .items i { font-style: normal; color: var(--ink-2); font-size: 14px; grid-column: 2; }
+  .items em { font-style: normal; font-variant-numeric: tabular-nums; grid-row: 1; grid-column: 3; }
+  .hanko { position: absolute; top: -18px; right: -14px; width: 74px; height: 74px; border-radius: 50%; border: 2.5px solid var(--ver); color: var(--ver);
+           display: grid; place-items: center; text-align: center; font: 700 11px/1.15 var(--sans); letter-spacing: .06em; text-transform: uppercase; transform: rotate(12deg); background: rgba(251,246,234,.92); }
+
+  .omakase { background: var(--night); color: var(--cream); padding-top: 150px; padding-bottom: 150px; margin: 40px 0; }
+  .omakase .kicker { color: #f0a58b; }
+  .omakase .note { color: rgba(246,239,226,.75); }
+  /* wavy paper edges as a mask, so the stream really passes under the edge instead of under a painted strip */
+  .omakase {
+    --wt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60' preserveAspectRatio='none'%3E%3Cpath d='M0 32 C120 44 260 16 580 32 S1020 54 1300 44 S1420 24 1440 24 V60 H0 Z'/%3E%3C/svg%3E");
+    --wb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60' preserveAspectRatio='none'%3E%3Cpath d='M0 0 H1440 V36 C1280 20 1120 48 940 32 S640 12 460 30 S160 46 0 30 Z'/%3E%3C/svg%3E");
+    -webkit-mask: var(--wt) top / 100% 60px no-repeat, linear-gradient(#000, #000) 0 59px / 100% calc(100% - 118px) no-repeat, var(--wb) bottom / 100% 60px no-repeat;
+    mask: var(--wt) top / 100% 60px no-repeat, linear-gradient(#000, #000) 0 59px / 100% calc(100% - 118px) no-repeat, var(--wb) bottom / 100% 60px no-repeat;
+  }
+  .facts { display: flex; flex-wrap: wrap; gap: 48px; margin: 8px 0 54px; }
+  .facts div { font-size: 14px; color: rgba(246,239,226,.7); }
+  .facts b { display: block; font: 700 40px/1.1 var(--serif); color: var(--cream); }
+  .courses { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 56px; }
+  .courses li { background: var(--cream); color: var(--ink); padding: 9px 15px; font-size: 14px; box-shadow: 3px 5px 0 -1px rgba(0,0,0,.25); }
+  .courses li:nth-child(odd) { transform: rotate(-1deg); }
+  .courses li:nth-child(3n) { transform: rotate(1.2deg); }
+  .courses li span { color: var(--ver); font-family: var(--serif); margin-right: 6px; }
+
+  #visit { padding-bottom: 400px; }
+  .visit { display: grid; grid-template-columns: 1fr 1.1fr; gap: 8vw; align-items: start; }
+  .info dl { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px 20px; margin-top: 34px; }
+  .info dt { color: var(--ink-3); font-size: 14px; padding-top: 2px; }
+  .info dd { margin: 0; }
+  .hours { list-style: none; padding: 0; }
+  .hours li { display: flex; justify-content: space-between; max-width: 18em; }
+  .resv { background: var(--paper-hi); padding: 36px; box-shadow: var(--card-shadow); transform: rotate(.5deg); position: relative; }
+  .resv h3 { font: 700 30px var(--serif); margin-bottom: 4px; }
+  .resv .sub { color: var(--ink-2); font-size: 14px; margin-bottom: 24px; }
+  .field { margin-bottom: 20px; }
+  .field > label, .field > span { display: block; font-size: 13px; color: var(--ink-3); margin-bottom: 8px; letter-spacing: .04em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { font: 500 14px var(--sans); background: transparent; border: 1.5px solid rgba(31,26,23,.25); color: var(--ink); padding: 8px 14px; cursor: pointer; border-radius: 2px; }
+  .chips button:hover { border-color: var(--ink); }
+  .chips button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+  .resv input { width: 100%; font: 15px var(--sans); padding: 11px 12px; border: 1.5px solid rgba(31,26,23,.25); background: #fffdf7; border-radius: 2px; color: var(--ink); }
+  .resv input:focus { outline: none; border-color: var(--ink); }
+  .resv .btn { margin-top: 8px; transform: none; }
+  .done { position: absolute; inset: 0; background: var(--paper-hi); display: none; place-items: center; text-align: center; padding: 36px; }
+  .resv.ok .done { display: grid; }
+  .done .hanko { position: static; margin: 0 auto 18px; width: 96px; height: 96px; font-size: 13px; }
+  .pond-note { position: absolute; left: 0; right: 0; bottom: 48px; text-align: center; font: 500 15px var(--serif); color: var(--ink-2); }
+
+  footer { background: var(--ink); color: rgba(246,239,226,.7); padding: 46px 8vw; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 14px; }
+  footer b { font: 700 18px var(--serif); color: var(--cream); margin-right: 10px; }
+
+  @media (max-width: 980px) {
+    .cards { grid-template-columns: 1fr; max-width: 560px; }
+    .card:nth-child(2) { transform: rotate(.4deg); }
+    .visit { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .links { display: none; }
+    .nav { padding: 20px 6vw 0; }
+    .copy { left: 6vw; right: 6vw; top: 104px; transform: none; max-width: none; }
+    .count { left: 6vw; bottom: 22px; }
+    section { padding: 90px 6vw; }
+    .sec-head { max-width: 70vw; }
+    .cards { max-width: 74vw; }
+    .resv { padding: 26px; max-width: 80vw; }
+    #visit { padding-bottom: 300px; }
+    .facts { gap: 28px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }
+</style>
+</head>
+<body>
+<canvas id="stream" aria-hidden="true"></canvas>
+
+<header class="hero" id="top">
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="#top"><span class="mon">波</span>Namiya</a>
+    <div class="links"><a href="#menu">menu</a><a href="#omakase">omakase</a><a href="#visit">visit</a></div>
+    <a class="btn ver" href="#reserve">Reserve</a>
+  </nav>
+  <div class="copy">
+    <p class="kicker">sushi &amp; izakaya · twelve seats · since 2019</p>
+    <h1>Feed the koi.<br>Then let us <em>feed you.</em></h1>
+    <p class="lede">A hinoki counter, a stream through the garden, and a menu that changes with whatever came off the boat this morning.</p>
+    <div class="ctas"><a class="btn" href="#reserve">Reserve a seat</a><a class="btn ghost" href="#menu">Tonight's menu ↓</a></div>
+  </div>
+  <p class="count" aria-live="polite"><b id="kc">7</b> koi in the stream · <b id="fc">0</b> bites tonight · tap the water to feed them</p>
+</header>
+
+<main>
+  <section id="menu">
+    <div class="sec-head">
+      <p class="kicker">お品書き · tonight's menu</p>
+      <h2 class="serif">What came in this morning</h2>
+      <p class="note">Prices are per plate. The menu changes daily with the catch, so ask the counter what's good. The koi are not on it.</p>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <span class="hanko">chef's<br>pick</span>
+        <h3>Nigiri <span>two pieces</span></h3>
+        <ul class="items">
+          <li><span class="jp">赤身</span><b>Akami</b><em>9</em><i>lean bluefin, aged four days</i></li>
+          <li><span class="jp">鰤</span><b>Buri</b><em>10</em><i>winter yellowtail, yuzu kosho</i></li>
+          <li><span class="jp">帆立</span><b>Hotate</b><em>11</em><i>Hokkaido scallop, sea salt, lime</i></li>
+          <li><span class="jp">鮭</span><b>Sake</b><em>9</em><i>salmon belly, lightly torched</i></li>
+          <li><span class="jp">鰻</span><b>Unagi</b><em>12</em><i>freshwater eel, house tare</i></li>
+          <li><span class="jp">玉子</span><b>Tamago</b><em>6</em><i>sweet layered omelette</i></li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Small plates <span>to share</span></h3>
+        <ul class="items">
+          <li><span class="jp">枝豆</span><b>Edamame</b><em>6</em><i>smoked salt, shichimi</i></li>
+          <li><span class="jp">揚出</span><b>Agedashi tofu</b><em>9</em><i>dashi, grated daikon, bonito</i></li>
+          <li><span class="jp">唐揚</span><b>Karaage</b><em>12</em><i>fried chicken thigh, lemon, kewpie</i></li>
+          <li><span class="jp">茶碗</span><b>Chawanmushi</b><em>11</em><i>silken egg custard, crab, mitsuba</i></li>
+          <li><span class="jp">焼鳥</span><b>Negima</b><em>10</em><i>chicken &amp; scallion skewers, tare</i></li>
+          <li><span class="jp">田楽</span><b>Nasu dengaku</b><em>9</em><i>miso-glazed eggplant</i></li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>To drink <span>by the glass</span></h3>
+        <ul class="items">
+          <li><span class="jp">酒</span><b>Junmai daiginjo</b><em>16</em><i>clean, melon, very cold</i></li>
+          <li><span class="jp">酒</span><b>Tokubetsu junmai</b><em>13</em><i>dry, rice, good warm</i></li>
+          <li><span class="jp">酒</span><b>Nigori</b><em>12</em><i>cloudy, creamy, a little sweet</i></li>
+          <li><span class="jp">杯</span><b>Highball</b><em>12</em><i>Japanese whisky, lots of bubbles</i></li>
+          <li><span class="jp">柚</span><b>Yuzu sour</b><em>11</em><i>shochu, yuzu, soda</i></li>
+          <li><span class="jp">茶</span><b>Hojicha</b><em>5</em><i>roasted green tea, no alcohol</i></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="omakase" id="omakase">
+    <div class="sec-head">
+      <p class="kicker">おまかせ · at the counter</p>
+      <h2 class="serif">Omakase: leave it to us</h2>
+      <p class="note">Twelve seats, one sitting at a time. The chef builds the meal as it goes, from light to rich, ending somewhere sweet.</p>
+    </div>
+    <div class="facts">
+      <div><b>14</b>courses</div>
+      <div><b>2 hrs</b>give or take</div>
+      <div><b>$145</b>per guest</div>
+      <div><b>Thu–Sun</b>6:00 &amp; 8:30 pm</div>
+    </div>
+    <ol class="courses">
+      <li><span>一</span>chawanmushi</li><li><span>二</span>kombu-cured snapper</li><li><span>三</span>scallop &amp; lime</li>
+      <li><span>四</span>seared bonito</li><li><span>五</span>akami</li><li><span>六</span>chutoro</li><li><span>七</span>otoro</li>
+      <li><span>八</span>uni hand roll</li><li><span>九</span>miso soup</li><li><span>十</span>tamago</li><li><span>…</span>and a few surprises</li>
+    </ol>
+    <a class="btn light" href="#reserve">Reserve the counter</a>  </section>
+
+  <section id="visit">
+    <div class="visit">
+      <div class="info">
+        <div class="sec-head" style="margin-bottom:0">
+          <p class="kicker">訪問 · visit</p>
+          <h2 class="serif">Follow the stream</h2>
+          <p class="note">It ends in the pond out back. Walk-ins are welcome at the bar, and you're welcome to say hello to the koi.</p>
+        </div>
+        <dl>
+          <dt>Address</dt><dd>214 Mercer Lane<br>Brooklyn, NY 11201</dd>
+          <dt>Hours</dt><dd><ul class="hours"><li><span>Tue – Thu</span><span>5:30 – 10 pm</span></li><li><span>Fri – Sat</span><span>5:30 – 11 pm</span></li><li><span>Sun</span><span>5 – 9 pm</span></li><li><span>Mon</span><span>closed</span></li></ul></dd>
+          <dt>Phone</dt><dd><a href="#">(718) 555-0142</a></dd>
+          <dt>Email</dt><dd><a href="#">hello@namiya.example</a></dd>
+        </dl>
+      </div>
+
+      <form class="resv" id="reserve" novalidate>
+        <h3>Reserve a seat</h3>
+        <p class="sub">We'll hold your table for 15 minutes.</p>
+        <div class="field"><label for="rdate">Date</label><input type="date" id="rdate"></div>
+        <div class="field"><span>Guests</span><div class="chips" data-group="party"><button type="button">1</button><button type="button" aria-pressed="true">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button><button type="button">6</button></div></div>
+        <div class="field"><span>Time</span><div class="chips" data-group="time"><button type="button">5:30</button><button type="button">6:00</button><button type="button" aria-pressed="true">7:00</button><button type="button">7:30</button><button type="button">8:30</button><button type="button">9:00</button></div></div>
+        <div class="field"><label for="rname">Name</label><input id="rname" autocomplete="name" placeholder="Your name"></div>
+        <button class="btn ver" type="submit">Hold my seats</button>
+        <div class="done" role="status"><div><span class="hanko">held</span><h3 class="serif" id="doneText">See you soon.</h3><p class="sub">This is a demo, so nothing was booked.</p></div></div>
+      </form>
+    </div>
+    <p class="pond-note">the pond out back · where the stream ends</p>
+  </section>
+</main>
+
+<footer>
+  <div><b>波 Namiya</b>214 Mercer Lane, Brooklyn</div>
+  <div>the koi are not on the menu · demo site, placeholder details</div>
+</footer>
+
+<script>
+/* ---------- reservation card ---------- */
+document.querySelectorAll('.chips').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+}));
+const rdate = document.getElementById('rdate');
+rdate.valueAsDate = new Date(Date.now() + 864e5);
+document.getElementById('reserve').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.currentTarget, pick = g => f.querySelector(`[data-group=${g}] [aria-pressed=true]`).textContent;
+  const name = document.getElementById('rname').value.trim();
+  const d = rdate.valueAsDate ? rdate.valueAsDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' }) : 'soon';
+  document.getElementById('doneText').textContent = `${name ? name + ', s' : 'S'}ee you ${d} at ${pick('time')}, party of ${pick('party')}.`;
+  f.classList.add('ok');
+});
+
+/* ---------- the stream: one cut-paper waterway that runs the length of the page ---------- */
+(() => {
+const cv = document.getElementById('stream'), ctx = cv.getContext('2d');
+const lay = document.createElement('canvas'), lg = lay.getContext('2d');
+const bk = document.createElement('canvas'), bg = bk.getContext('2d');
+const $ = s => document.querySelector(s);
+const kcEl = $('#kc'), fcEl = $('#fc');
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a), clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const N = 18, STEP = 10, FLOW = 16;
+let VW = 0, VH = 0, dpr = 1, SW = 120, sy = 0, bkY = null;
+let PX = [], PY = [], TX = [], TY = [], NP = 0, heroIdx = 0, pool = { x: 0, y: 0, rx: 1, ry: 1 };
+let water, deep, moss, cream, pebbles = [];
+let koi = [], pads = [], pellets = [], ripples = [], bites = 0, time = 0;
+const pointer = { x: -999, y: -999, speed: 0, active: false, lt: 0, lastRip: 0 };
+
+/* ---------- path from the layout ---------- */
+function spline(wp) {
+  const out = [];
+  for (let i = 0; i < wp.length - 1; i++) {
+    const p0 = wp[Math.max(0, i - 1)], p1 = wp[i], p2 = wp[i + 1], p3 = wp[Math.min(wp.length - 1, i + 2)];
+    const n = Math.max(2, Math.ceil(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 5));
+    for (let j = 0; j < n; j++) {
+      const t = j / n, t2 = t * t, t3 = t2 * t, c = k => .5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3);
+      out.push([c(0), c(1)]);
+    }
+  }
+  out.push(wp[wp.length - 1]);
+  return out;
+}
+function resample(pts) {
+  const res = [pts[0].slice()]; let [ax, ay] = pts[0], acc = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const [bx, by] = pts[i]; let seg = Math.hypot(bx - ax, by - ay);
+    while (acc + seg >= STEP) { const t = (STEP - acc) / seg; ax += (bx - ax) * t; ay += (by - ay) * t; res.push([ax, ay]); seg = Math.hypot(bx - ax, by - ay); acc = 0; }
+    acc += seg; ax = bx; ay = by;
+  }
+  return res;
+}
+const docRect = el => { const r = el.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top + scrollY, b: r.bottom + scrollY, w: r.width, h: r.height }; };
+function buildPath() {
+  const W = VW, mob = W < 720;
+  const hero = docRect($('.hero')), copy = docRect($('.copy')), menuS = docRect($('#menu')), cards = docRect($('.cards')),
+        oma = docRect($('.omakase')), form = docRect($('#reserve')), visit = docRect($('#visit'));
+  SW = mob ? 66 : clamp(W * .085, 92, 140);
+  pool = { x: W * .5, y: visit.b - (mob ? 150 : 200), rx: Math.min(W * (mob ? .36 : .26), 380), ry: mob ? 82 : 118 };
+  const wp = mob ? [
+    [W * .84, -90], [W * .8, copy.b + 70], [W * .3, hero.b - 90], [W * .2, hero.b + 20], [W * .86, menuS.t + 70],
+    [W * .9, cards.t + 50], [W * .5, cards.t + cards.h * .5], [W * .2, cards.b + 40], [W * .8, cards.b + 110],
+    [W * .5, oma.t + oma.h * .5], [W * .2, oma.b + 50], [W * .9, form.t - 40], [W * .5, form.t + form.h * .5], [pool.x, pool.y]
+  ] : [
+    [W * .86, -90], [Math.max(copy.r + SW * 1.3, W * .76), hero.t + hero.h * .3], [W * .84, hero.t + hero.h * .62], [W * .66, hero.b - hero.h * .02],
+    [W * .8, menuS.t + 190], [W * .72, cards.t + 60], [W * .45, cards.t + cards.h * .6], [W * .28, cards.b + 52],
+    [W * .62, (cards.b + oma.t) / 2 + 30], [W * .78, oma.t + 90], [W * .7, oma.b - 70], [W * .84, oma.b + 70],
+    [(form.l + form.r) / 2, form.t + form.h * .5], [pool.x, pool.y]
+  ];
+  const pts = resample(spline(wp)); NP = pts.length;
+  PX = pts.map(p => p[0]); PY = pts.map(p => p[1]); TX = []; TY = [];
+  for (let i = 0; i < NP; i++) { const a = Math.max(0, i - 2), b = Math.min(NP - 1, i + 2), dx = PX[b] - PX[a], dy = PY[b] - PY[a], d = Math.hypot(dx, dy) || 1; TX.push(dx / d); TY.push(dy / d); }
+  heroIdx = PY.findIndex(y => y > hero.b); if (heroIdx < 0) heroIdx = NP >> 2;
+  water = shape(0); deep = shape(-SW * .28, true); moss = shape(0); cream = shape(mob ? 14 : 20);
+  pebbles = [];
+  for (let i = 30; i < NP - 20; i += Math.round(rnd(45, 80))) {
+    const side = Math.random() < .5 ? -1 : 1, nx = -TY[i], ny = TX[i], off = SW / 2 + (mob ? 12 : 18);
+    for (let j = 0; j < 3; j++) pebbles.push({ x: PX[i] + nx * side * (off + rnd(-4, 10)) + TX[i] * rnd(-22, 22), y: PY[i] + ny * side * (off + rnd(-4, 10)) + TY[i] * rnd(-22, 22), rx: rnd(6, 14), ry: rnd(5, 10), a: rnd(0, TAU), c: ['#d6cdbb', '#bfb5a2', '#e6dfd0', '#a99f8c'][j + (i & 1)] });
+  }
+  for (let a = 0; a < TAU; a += rnd(.5, .9)) {
+    const k = 1.08 + rnd(0, .1);
+    pebbles.push({ x: pool.x + Math.cos(a) * pool.rx * k, y: pool.y + Math.sin(a) * pool.ry * k, rx: rnd(8, 18), ry: rnd(6, 12), a: rnd(0, TAU), c: ['#d6cdbb', '#bfb5a2', '#e6dfd0'][Math.floor(a * 3) % 3] });
+  }
+  bkY = null;
+}
+function shape(extra, plain) {
+  const s = new Path2D(), p = new Path2D(), L = [], R = [];
+  for (let i = 0; i < NP; i++) {
+    const nx = -TY[i], ny = TX[i], w = Math.max(4, SW / 2 + extra + (plain ? 0 : 3.5 * Math.sin(i * .13 + extra) + 2.5 * Math.sin(i * .37 + extra * 2)));
+    L.push(PX[i] + nx * w, PY[i] + ny * w); R.push(PX[i] - nx * w, PY[i] - ny * w);
+  }
+  s.moveTo(L[0], L[1]); for (let i = 2; i < L.length; i += 2) s.lineTo(L[i], L[i + 1]);
+  for (let i = R.length - 2; i >= 0; i -= 2) s.lineTo(R[i], R[i + 1]); s.closePath();
+  for (let i = 0; i <= 80; i++) {
+    const a = i / 80 * TAU, k = 1 + (plain ? 0 : .06 * Math.sin(a * 3 + 1) + .04 * Math.sin(a * 5 + 2));
+    const x = pool.x + Math.cos(a) * Math.max(10, pool.rx + extra) * k, y = pool.y + Math.sin(a) * Math.max(10, pool.ry + extra) * k;
+    i ? p.lineTo(x, y) : p.moveTo(x, y);
+  }
+  p.closePath();
+  return [s, p];
+}
+const fillShape = (g, [s, p]) => { g.fill(s); g.fill(p); };
+function nearest(x, y) {
+  let bi = 0, bd = 1e12;
+  for (let i = 0; i < NP; i += 2) { const d = (PX[i] - x) ** 2 + (PY[i] - y) ** 2; if (d < bd) { bd = d; bi = i; } }
+  for (let i = Math.max(0, bi - 2); i <= Math.min(NP - 1, bi + 2); i++) { const d = (PX[i] - x) ** 2 + (PY[i] - y) ** 2; if (d < bd) { bd = d; bi = i; } }
+  return [bi, Math.sqrt(bd)];
+}
+const inPool = (x, y) => ((x - pool.x) / pool.rx) ** 2 + ((y - pool.y) / pool.ry) ** 2;
+const onWater = (x, y) => inPool(x, y) < 1 || nearest(x, y)[1] < SW / 2 - 4;
+
+/* ---------- koi (same paper koi as the pond) ---------- */
+const C = { white: '#f4ece0', red: '#d4442c', black: '#231e1d', gold: '#e6a43a', gold2: '#f6cd70', bronze: '#9a6a3d', blue: '#7f95a3', orange: '#e2773b' };
+const KINDS = ['kohaku', 'sanke', 'ogon', 'showa', 'tancho', 'asagi', 'kohaku', 'chagoi', 'sanke', 'ogon', 'kohaku'];
+function look(kind) {
+  const S = [], blob = (c, t, s, r) => S.push({ c, t, s, r, w: [rnd(0, TAU), rnd(0, TAU), rnd(.08, .18)] });
+  const many = (c, n, a, b) => { for (let i = 0; i < n; i++) blob(c, rnd(.1, .78), rnd(-.75, .75), rnd(a, b)); };
+  switch (kind) {
+    case 'kohaku': many(C.red, 3, .75, 1.15); return { body: C.white, fin: '#ece2d2', S };
+    case 'sanke': many(C.red, 3, .65, 1); many(C.black, 3, .25, .42); return { body: C.white, fin: '#ece2d2', S };
+    case 'showa': many(C.red, 3, .6, .95); many(C.white, 2, .4, .65); return { body: C.black, fin: '#3d3432', S };
+    case 'ogon': many(C.gold2, 3, .35, .6); return { body: C.gold, fin: '#efbd5a', S };
+    case 'tancho': blob(C.red, .06, 0, .62); return { body: C.white, fin: '#ece2d2', S };
+    case 'asagi': blob(C.orange, .42, .98, .8); blob(C.orange, .42, -.98, .8); blob(C.orange, .03, 0, .45); return { body: C.blue, fin: '#a2b4bf', S };
+    default: return { body: C.bronze, fin: '#b88452', S };
+  }
+}
+function makeKoi(i, x, y, h) {
+  const scale = rnd(.62, 1), L = SW * 1.08 * scale, lk = look(KINDS[i % KINDS.length]), seg = L / (N - 1), nodes = new Float32Array(N * 2);
+  for (let j = 0; j < N; j++) { nodes[2 * j] = x - Math.cos(h) * seg * j; nodes[2 * j + 1] = y - Math.sin(h) * seg * j; }
+  return { color: lk.body, finC: lk.fin, spots: lk.S, L, seg, maxW: L * .135, scale, h, nodes, speed: 30, cruise: rnd(26, 42) * (.75 + scale * .35),
+           phase: rnd(0, TAU), finP: rnd(0, TAU), wander: rnd(-1, 1), startle: 0, fleeX: 0, fleeY: 0, gulp: 0, food: null, curious: rnd(.4, 1),
+           dir: Math.random() < .6 ? 1 : -1, flip: rnd(10, 30) };
+}
+function seed() {
+  const n = clamp(Math.round(NP * STEP / 520), 6, 11); koi = [];
+  for (let i = 0; i < n; i++) {
+    let x, y, h;
+    if (i === n - 1 || i === n - 2) { x = pool.x + rnd(-.4, .4) * pool.rx; y = pool.y + rnd(-.3, .3) * pool.ry; h = rnd(0, TAU); }
+    else { const idx = i < 3 ? Math.round(heroIdx * (.3 + .22 * i)) : Math.round(rnd(heroIdx, NP - 30)); x = PX[idx]; y = PY[idx]; h = Math.atan2(TY[idx], TX[idx]) + (Math.random() < .4 ? Math.PI : 0); }
+    koi.push(makeKoi(i, x, y, h));
+  }
+  koi.sort((a, b) => a.scale - b.scale); kcEl.textContent = koi.length;
+  pads = [];
+  const sp = Math.max(3, Math.round(NP / 70));
+  for (let i = 0; i < sp; i++) pads.push(makePad(false, Math.round((i + rnd(.1, .9)) / sp * (NP - 1))));
+  for (let i = 0; i < 3; i++) pads.push(makePad(true));
+}
+function makePad(inP, idx) {
+  const r = inP ? SW * rnd(.32, .42) : SW * rnd(.2, .28);
+  const p = { pool: inP, i: idx || 0, lat: rnd(-.3, .3) * SW, r, x: 0, y: 0, rot: rnd(0, TAU), vr: rnd(-.06, .06), notch: rnd(.35, .6), c: ['#6c9a54', '#5d8a4a', '#7ba45d'][Math.random() * 3 | 0], flower: Math.random() < .4, bob: 0, vx: rnd(-4, 4), vy: rnd(-3, 3) };
+  if (inP) { const a = rnd(0, TAU), k = rnd(.15, .6); p.x = pool.x + Math.cos(a) * pool.rx * k; p.y = pool.y + Math.sin(a) * pool.ry * k; }
+  return p;
+}
+
+/* ---------- simulation ---------- */
+const ripple = (x, y, s) => ripples.push({ x, y, s, born: time });
+function feed(x, y) {
+  ripple(x, y, .3);
+  const n = Math.min(6 + (Math.random() * 4 | 0), 40 - pellets.length);
+  for (let i = 0; i < n; i++) { const a = rnd(0, TAU), s = rnd(5, 22); pellets.push({ x: x + Math.cos(a) * s * .3, y: y + Math.sin(a) * s * .3, vx: Math.cos(a) * s, vy: Math.sin(a) * s, born: time, land: rnd(.22, .5), landed: false }); }
+}
+function eat(k, p) { pellets.splice(pellets.indexOf(p), 1); k.food = null; k.gulp = 1; ripple(p.x, p.y, .5); fcEl.textContent = ++bites; }
+function stepKoi(k, dt) {
+  const n = k.nodes, hx = n[0], hy = n[1];
+  let sx = Math.cos(k.h), sy2 = Math.sin(k.h), target = k.cruise, turn = 1.6;
+  k.wander = clamp(k.wander + rnd(-1, 1) * dt * 2.4, -1, 1);
+  sx += Math.cos(k.h + k.wander) * .5; sy2 += Math.sin(k.h + k.wander) * .5;
+  const ip = inPool(hx, hy), [i, d] = nearest(hx, hy);
+  if (ip < 1 && (i > NP - 12 || ip < .8)) {
+    // in the pond: stay inside the rim, sometimes head back upstream
+    if (ip > .6) { const f = (ip - .6) * 6; sx += (pool.x - hx) / pool.rx * f; sy2 += (pool.y - hy) / pool.ry * f; }
+    if (k.dir > 0 && Math.random() < dt * .04) k.dir = -1;
+    if (k.dir < 0) { sx += -TX[NP - 1] * .6; sy2 += -TY[NP - 1] * .6; }
+  } else {
+    const lim = Math.max(6, SW / 2 - k.maxW * 1.5);
+    if (d > lim) { const f = (d - lim) / 10; sx += (PX[i] - hx) / d * f; sy2 += (PY[i] - hy) / d * f; }
+    sx += TX[i] * k.dir * .9; sy2 += TY[i] * k.dir * .9;
+    if (i < 10) k.dir = 1;
+    k.flip -= dt; if (k.flip <= 0) { k.dir *= -1; k.flip = rnd(14, 34); }
+  }
+  for (const o of koi) {
+    if (o === k) continue;
+    const dx = hx - o.nodes[0], dy = hy - o.nodes[1], dd = Math.hypot(dx, dy), R = (k.L + o.L) * .26;
+    if (dd < R && dd > 0) { const f = (1 - dd / R) * 1.1; sx += dx / dd * f; sy2 += dy / dd * f; }
+  }
+  if (k.food && !pellets.includes(k.food)) k.food = null;
+  if (!k.food) { let bd = 520 * 520; for (const p of pellets) { const dd = (p.x - hx) ** 2 + (p.y - hy) ** 2; if (dd < bd) { bd = dd; k.food = p; } } }
+  if (k.food) {
+    const p = k.food, dx = p.x - hx, dy = p.y - hy, dd = Math.hypot(dx, dy) || 1;
+    sx += dx / dd * 3.4; sy2 += dy / dd * 3.4; target = k.cruise * (dd < 60 ? 1.6 : 2.8); turn = 3.4;
+    if (p.landed && dd < k.maxW * 1.1 + 6) eat(k, p);
+  } else if (pointer.active) {
+    const dx = hx - pointer.x, dy = hy - pointer.y, dd = Math.hypot(dx, dy) || 1;
+    if (pointer.speed > 900 && dd < 200 && k.startle <= 0) { k.startle = .8; k.fleeX = dx / dd; k.fleeY = dy / dd; ripple(hx, hy, .35); }
+    else if (pointer.speed < 260 && dd < 260 && dd > 70) { sx -= dx / dd * k.curious; sy2 -= dy / dd * k.curious; target = k.cruise * 1.25; }
+  }
+  if (k.startle > 0) { k.startle -= dt; sx += k.fleeX * 4; sy2 += k.fleeY * 4; target = k.cruise * 4.5; turn = 5.5; }
+  let da = Math.atan2(sy2, sx) - k.h; da = Math.atan2(Math.sin(da), Math.cos(da));
+  k.h += clamp(da, -turn * dt, turn * dt);
+  k.speed += (target * (reduce ? .5 : 1) - k.speed) * Math.min(1, dt * (k.startle > 0 ? 6 : 1.6));
+  n[0] = hx + Math.cos(k.h) * k.speed * dt; n[1] = hy + Math.sin(k.h) * k.speed * dt;
+  for (let j = 1; j < N; j++) {
+    const px = n[2 * j - 2], py = n[2 * j - 1], dx = n[2 * j] - px, dy = n[2 * j + 1] - py, dd = Math.hypot(dx, dy) || 1;
+    n[2 * j] = px + dx / dd * k.seg; n[2 * j + 1] = py + dy / dd * k.seg;
+  }
+  k.phase += dt * (2.2 + k.speed * .06); k.finP += dt * (1.6 + k.speed * .02); k.gulp = Math.max(0, k.gulp - dt * 2.5);
+}
+function step(dt) {
+  pointer.speed *= Math.exp(-6 * dt);
+  for (const k of koi) stepKoi(k, dt);
+  for (const p of pellets) {
+    if (!p.landed && time - p.born > p.land) { p.landed = true; ripple(p.x, p.y, .08); }
+    const f = Math.exp(-(p.landed ? 1.2 : 4) * dt); p.vx *= f; p.vy *= f; p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.landed && inPool(p.x, p.y) > 1) { const [i] = nearest(p.x, p.y); p.x += TX[i] * FLOW * dt; p.y += TY[i] * FLOW * dt; }
+  }
+  pellets = pellets.filter(p => time - p.born < 20);
+  ripples = ripples.filter(r => time - r.born < 1.4 + r.s * 2);
+  for (const p of pads) {
+    p.rot += p.vr * dt; p.bob = Math.max(0, p.bob - dt * 1.5);
+    if (p.pool) {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (inPool(p.x, p.y) > .55) { p.vx += (pool.x - p.x) * dt * .02; p.vy += (pool.y - p.y) * dt * .02; }
+    } else {
+      p.i += FLOW * .55 * dt / STEP; if (p.i >= NP - 14) { p.i = 0; p.lat = rnd(-.3, .3) * SW; }
+      const i = p.i | 0; p.x = PX[i] - TY[i] * p.lat; p.y = PY[i] + TX[i] * p.lat;
+    }
+  }
+}
+
+/* ---------- drawing ---------- */
+const D = new Float32Array(N * 2), NX = new Float32Array(N), NY = new Float32Array(N), WD = new Float32Array(N);
+const prof = t => Math.pow(Math.sin(Math.PI * (.13 + .87 * t)), .75) * (1 - .5 * t);
+function leaf(g, bx, by, ang, len, wid) {
+  const tx = bx + Math.cos(ang) * len, ty = by + Math.sin(ang) * len, px = -Math.sin(ang) * wid, py = Math.cos(ang) * wid, mx = bx + Math.cos(ang) * len * .5, my = by + Math.sin(ang) * len * .5;
+  g.moveTo(bx, by); g.quadraticCurveTo(mx + px, my + py, tx, ty); g.quadraticCurveTo(mx - px * .5, my - py * .5, bx, by);
+}
+function geom(k) {
+  const n = k.nodes;
+  for (let j = 0; j < N; j++) {
+    let dx, dy; if (j === 0) { dx = Math.cos(k.h); dy = Math.sin(k.h); } else { dx = n[2 * j - 2] - n[2 * j]; dy = n[2 * j - 1] - n[2 * j + 1]; }
+    const d = Math.hypot(dx, dy) || 1; NX[j] = -dy / d; NY[j] = dx / d;
+  }
+  const amp = k.maxW * (.45 + Math.min(1, k.speed / 120) * .35);
+  for (let j = 0; j < N; j++) { const t = j / (N - 1), off = Math.sin(k.phase - j * .42) * amp * Math.pow(t, 1.3); D[2 * j] = n[2 * j] + NX[j] * off; D[2 * j + 1] = n[2 * j + 1] + NY[j] * off; }
+  for (let j = 0; j < N; j++) {
+    let dx, dy; if (j === 0) { dx = D[0] - D[2]; dy = D[1] - D[3]; } else { dx = D[2 * j - 2] - D[2 * j]; dy = D[2 * j - 1] - D[2 * j + 1]; }
+    const d = Math.hypot(dx, dy) || 1; NX[j] = -dy / d; NY[j] = dx / d;
+    WD[j] = k.maxW * prof(j / (N - 1)) * (j < 5 ? 1 + k.gulp * .14 : 1);
+  }
+}
+function bodyPath() {
+  const a = Math.atan2(NY[0], NX[0]);
+  ctx.beginPath(); ctx.arc(D[0], D[1], WD[0], a - Math.PI, a, false);
+  const P = [];
+  for (let j = 1; j < N; j++) P.push(D[2 * j] + NX[j] * WD[j], D[2 * j + 1] + NY[j] * WD[j]);
+  for (let j = N - 1; j >= 1; j--) P.push(D[2 * j] - NX[j] * WD[j], D[2 * j + 1] - NY[j] * WD[j]);
+  const m = P.length / 2;
+  for (let i = 0; i < m - 1; i++) ctx.quadraticCurveTo(P[2 * i], P[2 * i + 1], (P[2 * i] + P[2 * i + 2]) / 2, (P[2 * i + 1] + P[2 * i + 3]) / 2);
+  ctx.lineTo(P[2 * m - 2], P[2 * m - 1]); ctx.closePath();
+}
+function fins(k) {
+  const back = j => Math.atan2(D[2 * j + 1] - D[2 * j - 1], D[2 * j] - D[2 * j - 2]);
+  for (const [j, len, wid, sp] of [[3, 1.75, .6, .95], [10, .9, .35, .8]]) {
+    const b = back(j), s = sp + .28 * Math.sin(k.finP + j);
+    leaf(ctx, D[2 * j] + NX[j] * WD[j] * .6, D[2 * j + 1] + NY[j] * WD[j] * .6, b - s, k.maxW * len, k.maxW * wid);
+    leaf(ctx, D[2 * j] - NX[j] * WD[j] * .6, D[2 * j + 1] - NY[j] * WD[j] * .6, b + s, k.maxW * len, k.maxW * wid);
+  }
+  const j = N - 3, bx = D[2 * j], by = D[2 * j + 1], b = back(N - 1) + Math.sin(k.phase - 7) * .3, L = k.maxW * 2.5;
+  const at = (a, r) => [bx + Math.cos(a) * L * r, by + Math.sin(a) * L * r];
+  const [c1x, c1y] = at(b - .22, .6), [t1x, t1y] = at(b - .55, 1), [c2x, c2y] = at(b - .18, .85), [nx, ny] = at(b, .62), [c3x, c3y] = at(b + .18, .85), [t2x, t2y] = at(b + .55, 1), [c4x, c4y] = at(b + .22, .6);
+  ctx.moveTo(bx, by); ctx.quadraticCurveTo(c1x, c1y, t1x, t1y); ctx.quadraticCurveTo(c2x, c2y, nx, ny); ctx.quadraticCurveTo(c3x, c3y, t2x, t2y); ctx.quadraticCurveTo(c4x, c4y, bx, by);
+}
+function drawKoi(k) {
+  geom(k);
+  const d = .6 + k.scale * .5;
+  ctx.save();
+  ctx.shadowColor = 'rgba(4,20,28,.4)'; ctx.shadowBlur = 8 * d * dpr; ctx.shadowOffsetX = 5 * d * dpr; ctx.shadowOffsetY = 9 * d * dpr;
+  ctx.fillStyle = k.finC; ctx.globalAlpha = .93; ctx.beginPath(); fins(k); ctx.fill();
+  ctx.globalAlpha = 1; ctx.fillStyle = k.color; bodyPath(); ctx.fill();
+  ctx.restore();
+  ctx.save(); bodyPath(); ctx.clip();
+  ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 2.5 * dpr; ctx.shadowOffsetX = dpr; ctx.shadowOffsetY = 1.5 * dpr;
+  for (const s of k.spots) {
+    const f = s.t * (N - 1), j = Math.min(N - 2, f | 0), u = f - j;
+    const cx = D[2 * j] + (D[2 * j + 2] - D[2 * j]) * u, cy = D[2 * j + 1] + (D[2 * j + 3] - D[2 * j + 1]) * u;
+    const nx = NX[j] + (NX[j + 1] - NX[j]) * u, ny = NY[j] + (NY[j + 1] - NY[j]) * u, w = WD[j] + (WD[j + 1] - WD[j]) * u;
+    const px = cx + nx * s.s * w, py = cy + ny * s.s * w, r = s.r * k.maxW, fx = ny, fy = -nx;
+    ctx.fillStyle = s.c; ctx.beginPath();
+    for (let q = 0; q < 12; q++) {
+      const a = q / 12 * TAU, rr = r * (1 + s.w[2] * Math.sin(a * 2 + s.w[0]) + s.w[2] * .6 * Math.sin(a * 3 + s.w[1]));
+      const ex = Math.cos(a) * rr * 1.35, ey = Math.sin(a) * rr;
+      ctx.lineTo(px + fx * ex + nx * ey, py + fy * ex + ny * ey);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; bodyPath(); ctx.stroke();
+}
+function drawPad(p) {
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+  const r = p.r * (1 + p.bob * .07 * Math.sin(time * 16));
+  ctx.shadowColor = 'rgba(4,20,28,.42)'; ctx.shadowBlur = 10 * dpr; ctx.shadowOffsetX = 6 * dpr; ctx.shadowOffsetY = 9 * dpr;
+  ctx.fillStyle = p.c; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, p.notch / 2, TAU - p.notch / 2); ctx.closePath(); ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r * .64, p.notch / 2 + .1, TAU - p.notch / 2 - .1); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(28,48,24,.28)'; ctx.lineWidth = 1.1; ctx.beginPath();
+  for (let v = 0; v < 9; v++) { const a = p.notch / 2 + (TAU - p.notch) * (v + .5) / 9; ctx.moveTo(Math.cos(a) * r * .1, Math.sin(a) * r * .1); ctx.lineTo(Math.cos(a) * r * .86, Math.sin(a) * r * .86); }
+  ctx.stroke();
+  if (p.flower) {
+    const fr = r * .55; ctx.translate(-r * .2, r * .18); ctx.rotate(-p.rot * .5);
+    ctx.shadowColor = 'rgba(4,20,28,.35)'; ctx.shadowBlur = 5 * dpr; ctx.shadowOffsetX = 2 * dpr; ctx.shadowOffsetY = 4 * dpr;
+    for (const [n, sz, col, off] of [[8, 1, '#efb2c0', 0], [6, .72, '#f7d6de', .3], [5, .45, '#fbe9ec', .1]]) {
+      ctx.fillStyle = col;
+      for (let i = 0; i < n; i++) { ctx.save(); ctx.rotate(i / n * TAU + off); ctx.beginPath(); ctx.ellipse(0, -fr * .5 * sz, fr * .24 * sz, fr * .5 * sz, 0, 0, TAU); ctx.fill(); ctx.restore(); }
+    }
+    ctx.fillStyle = '#f0c54a'; ctx.beginPath(); ctx.arc(0, 0, fr * .16, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+}
+// paper banks: two sheets with the stream cut out, cached per scroll position
+function banks() {
+  bg.setTransform(1, 0, 0, 1, 0, 0); bg.clearRect(0, 0, bk.width, bk.height);
+  for (const [col, hole, sh] of [['#5d7c4d', moss, 9], ['#f3ead8', cream, 13]]) {
+    lg.setTransform(dpr, 0, 0, dpr, 0, 0); lg.globalCompositeOperation = 'source-over'; lg.fillStyle = col; lg.fillRect(0, 0, VW, VH);
+    lg.globalCompositeOperation = 'destination-out'; lg.translate(0, -sy); fillShape(lg, hole);
+    bg.save(); bg.shadowColor = 'rgba(3,16,22,.42)'; bg.shadowBlur = sh * dpr; bg.shadowOffsetX = sh * .3 * dpr; bg.shadowOffsetY = sh * .6 * dpr; bg.drawImage(lay, 0, 0); bg.restore();
+  }
+  bg.setTransform(dpr, 0, 0, dpr, 0, -sy * dpr);
+  for (const p of pebbles) {
+    if (p.y < sy - 40 || p.y > sy + VH + 40) continue;
+    bg.save(); bg.shadowColor = 'rgba(3,16,22,.4)'; bg.shadowBlur = 6 * dpr; bg.shadowOffsetX = 2 * dpr; bg.shadowOffsetY = 4 * dpr;
+    bg.fillStyle = p.c; bg.beginPath(); bg.ellipse(p.x, p.y, p.rx, p.ry, p.a, 0, TAU); bg.fill(); bg.restore();
+  }
+  bkY = sy;
+}
+const vis = (y, m = 160) => y > sy - m && y < sy + VH + m;
+function draw() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#f3ead8'; ctx.fillRect(0, 0, VW, VH);
+  ctx.translate(0, -sy);
+  ctx.fillStyle = '#1d4757'; fillShape(ctx, water);
+  ctx.fillStyle = 'rgba(8,28,38,.32)'; fillShape(ctx, deep);
+  // the current: little paper dashes drifting downstream
+  ctx.strokeStyle = 'rgba(232,224,206,.22)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath();
+  for (let s = 0; s < NP; s += 9) {
+    const i = Math.floor((s + time * FLOW / STEP) % (NP - 1)); if (!vis(PY[i])) continue;
+    const lat = ((s * 37) % 100 / 100 - .5) * SW * .7, x = PX[i] - TY[i] * lat, y = PY[i] + TX[i] * lat;
+    ctx.moveTo(x, y); ctx.lineTo(x + TX[i] * 14, y + TY[i] * 14);
+  }
+  ctx.stroke();
+  for (const k of koi) if (vis(k.nodes[1], 220)) drawKoi(k);
+  for (const p of pellets) {
+    if (!vis(p.y)) continue;
+    const fall = p.landed ? 0 : 1 - (time - p.born) / p.land, s = 3.2 + fall * 3.2, sh = 2 + fall * 10;
+    ctx.save(); ctx.shadowColor = 'rgba(4,20,28,.45)'; ctx.shadowBlur = (3 + fall * 4) * dpr; ctx.shadowOffsetX = sh * .6 * dpr; ctx.shadowOffsetY = sh * dpr;
+    ctx.fillStyle = '#d9a35c'; ctx.beginPath(); ctx.arc(p.x, p.y, s, 0, TAU); ctx.fill(); ctx.restore();
+  }
+  for (const r of ripples) {
+    if (!vis(r.y)) continue;
+    const age = time - r.born, life = 1.4 + r.s * 2, p = age / life, R = 4 + age * (34 + 80 * r.s);
+    ctx.strokeStyle = `rgba(238,230,212,${(1 - p) * (.22 + .6 * r.s)})`; ctx.lineWidth = 1.2 + 2.2 * r.s * (1 - p);
+    ctx.beginPath(); ctx.arc(r.x, r.y, R, 0, TAU); ctx.stroke();
+    if (r.s > .2) { ctx.beginPath(); ctx.arc(r.x, r.y, R * .62, 0, TAU); ctx.stroke(); }
+  }
+  for (const p of pads) if (vis(p.y)) drawPad(p);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (bkY !== sy) banks();
+  ctx.drawImage(bk, 0, 0);
+}
+
+/* ---------- wiring ---------- */
+function resize() {
+  VW = document.documentElement.clientWidth; VH = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
+  for (const c of [cv, lay, bk]) { c.width = Math.ceil(VW * dpr); c.height = Math.ceil(VH * dpr); }
+  sy = scrollY; buildPath(); seed();
+}
+const isUI = t => t.closest('a, button, input, label, nav, .copy, .card, .resv, .omakase, footer, .sec-head, .info, .count');
+addEventListener('pointermove', e => {
+  const x = e.clientX, y = e.clientY + scrollY, dt = (e.timeStamp - pointer.lt) / 1000;
+  const wet = !isUI(e.target) && onWater(x, y);
+  document.body.classList.toggle('on-water', wet);
+  if (pointer.active && dt > 0 && dt < .2) pointer.speed = pointer.speed * .7 + Math.hypot(x - pointer.x, y - pointer.y) / dt * .3;
+  pointer.x = x; pointer.y = y; pointer.lt = e.timeStamp; pointer.active = wet;
+  if (wet && pointer.speed > 380 && time - pointer.lastRip > .09) { ripple(x, y, .06); pointer.lastRip = time; }
+});
+addEventListener('click', e => {
+  if (isUI(e.target)) return;
+  const x = e.clientX, y = e.clientY + scrollY;
+  if (!onWater(x, y)) return;
+  const hit = koi.find(k => { for (let j = 0; j < N; j += 3) if (Math.hypot(k.nodes[2 * j] - x, k.nodes[2 * j + 1] - y) < k.maxW * 1.3) return true; return false; });
+  if (hit) { hit.startle = .7; const d = Math.hypot(hit.nodes[0] - x, hit.nodes[1] - y) || 1; hit.fleeX = (hit.nodes[0] - x) / d; hit.fleeY = (hit.nodes[1] - y) / d; ripple(x, y, .7); return; }
+  const pad = pads.find(p => Math.hypot(p.x - x, p.y - y) < p.r);
+  if (pad) { pad.bob = 1; pad.vr += rnd(-.4, .4); ripple(x, y, .25); return; }
+  feed(x, y);
+});
+let resizeT; addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(resize, 150); });
+// the path is built from the layout, so rebuild when fonts or images change it
+let lastH = 0; new ResizeObserver(() => { const h = document.body.scrollHeight; if (Math.abs(h - lastH) > 4) { lastH = h; clearTimeout(resizeT); resizeT = setTimeout(resize, 150); } }).observe(document.body);
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  sy = scrollY; time += dt; step(dt); draw();
+  requestAnimationFrame(frame);
+}
+resize();
+requestAnimationFrame(frame);
+window.stream = { feed, get koi() { return koi; }, get bites() { return bites; } };
+})();
+</script>
+</body>
+</html>
